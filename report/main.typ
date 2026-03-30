@@ -1,11 +1,10 @@
-#set document(title: "Explainable AI-Based Wafer Map Defect Diagnosis and Decision Support System")
 #set page(paper: "a4", margin: 1in)
 #set text(size: 12pt)
 #set heading(numbering: "1.")
 
 #align(center)[
   #text(size: 16pt, weight: "bold")[
-    Explainable AI-Based Wafer Map Defect Diagnosis and Decision Support System --- Initial Draft
+    Explainable AI-Based Wafer Map Defect Diagnosis and Decision Support System - Initial Draft
   ]
 
   #v(0.5em)
@@ -16,8 +15,6 @@
   Matti Lehmann (T14H06309) \
   Staniya Thomas (T14H06310)
 ]
-
-#v(1em)
 
 = Project Motivation
 
@@ -109,9 +106,9 @@ Due to computational constraints, a subset of the dataset will be used.
 
 Since no public dataset links defects to machine failures, we will construct a knowledge-based mapping:
 
-- Ring $arrow.r$ Deposition non-uniformity (CVD)
-- Scratch $arrow.r$ Mechanical handling issue
-- Edge defects $arrow.r$ Etching or gas flow imbalance
+- Ring -> Deposition non-uniformity (CVD)
+- Scratch -> Mechanical handling issue
+- Edge defects -> Etching or gas flow imbalance
 
 Multiple detected defects may correspond to multiple possible root causes.
 
@@ -129,10 +126,10 @@ Generate structured output including:
 #figure(
   image("wafer_system_design.jpg", width: 80%),
   caption: [Initial system design sketch showing UI layout, model pipeline, and module breakdown],
-) <fig-system-design>
+) <fig:system-design>
 
 #align(center)[
-  User Input (Wafer Map) $arrow.r$ Preprocessing $arrow.r$ CNN Model (Multi-label Classification) $arrow.r$ Explainability Module (Grad-CAM) $arrow.r$ RCA Engine $arrow.r$ Decision Support Output
+  User Input (Wafer Map) -> Preprocessing -> CNN Model (Multi-label Classification) -> Explainability Module (Grad-CAM) -> RCA Engine -> Decision Support Output
 ]
 
 = Expected Output Example
