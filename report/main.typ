@@ -1,7 +1,6 @@
 #set page(paper: "a4", margin: 1in)
 #set text(size: 12pt)
 #set heading(numbering: "1.")
-#set text(lang: "de", hyphenate: true)
 #set par(justify: true)
 #set page(paper: "a4", margin: 1in, numbering: "1")
 
