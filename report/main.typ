@@ -1,14 +1,15 @@
 #set page(paper: "a4", margin: 1in)
 #set text(size: 12pt)
 #set heading(numbering: "1.")
-#set text(lang: "en", hyphenate: true)
 #set par(justify: true)
 #set page(paper: "a4", margin: 1in, numbering: "1")
+#set text(lang: "en", hyphenate: true)
+
 
 
 
 #align(center)[
-  #text(size: 16pt, weight: "bold")[
+  #text(size: 16pt, weight: "bold", hyphenate: false)[
     Explainable Artificial Intelligence-Based Wafer Map Defect Diagnosis and Decision Support System
   ]
 
@@ -50,32 +51,28 @@ The system does not provide guaranteed conclusions but supports decision-making 
 = Proposed System Overview
 
 
-The system consists of four main components:
+The system consists of three main components:
 
 + *Defect Classification Model*
 
-  A deep learning model (e.g., ResNet or EfficientNet) will be adapted for multi-label classification to identify multiple defect types present in a single wafer map.
-
-+ *Explainability Module*
-
-  Techniques such as Grad-CAM will be used to highlight important regions in the wafer map that influenced each detected defect pattern.
+  A deep learning model  will be adapted for multi-label classification to identify multiple defect types present in a single wafer map.
 
 + *Root Cause Analysis (RCA) Engine*
 
 
-A knowledge-based mapping will connect defect patterns to likely process issues and machine types.
+  A knowledge-based mapping will connect defect patterns to likely process issues and machine types.
 
 
-== Decision Support Layer
++ *Decision Support Layer*
 
 
-The system will generate:
+  The system will generate:
 
 
-- Diagnosis (multiple defect types with confidence scores)
-- Explanation (key contributing regions for each defect)
-- Root cause suggestions
-- Actionable recommendations
+  - Diagnosis (multiple defect types with confidence scores)
+  - Explanation (key contributing regions for each defect)
+  - Root cause suggestions
+  - Actionable recommendations
 
 
 = Dataset
@@ -98,10 +95,10 @@ We will use the WM-811K wafer map dataset, which contains:
   - None
 
 
-Although each wafer is labeled with a primary defect type in the dataset, real-world wafers may contain multiple defect patterns. This project extends the problem to a *multi-label detection setting*.
+Although each wafer is labeled with a primary defect type in the dataset, real-world wafers may contain multiple defect patterns. This project extends the problem to a multi-label detection setting.
 
 
-Due to computational constraints, a subset of the dataset will be used.
+Due to computational constraints, a subset of the dataset might be used.
 
 
 = Methodology
