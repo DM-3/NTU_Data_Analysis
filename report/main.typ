@@ -31,14 +31,18 @@ In practice, a single wafer may exhibit multiple defect patterns simultaneously,
 
 = Problem Statement
 
+<<<<<<< Updated upstream
 
 Given a wafer map image, the system should:
+=======
+To be able to improve the production yield and identify errors in the production process, given a wafer map image, the system should:
+>>>>>>> Stashed changes
 
 
 - Detect and classify one or more defect patterns (multi-label classification)
 - Provide an explanation of why each pattern is identified
 - Suggest likely process-related causes for each detected defect
-- Recommend possible actions for engineers
+-  In the best case even recommend possible actions for engineers
 
 
 The system does not provide guaranteed conclusions but supports decision-making under uncertainty.
@@ -49,21 +53,32 @@ The system does not provide guaranteed conclusions but supports decision-making 
 
 The system consists of four main components:
 
+<<<<<<< Updated upstream
 
 == Defect Classification Model
 
 
 A deep learning model (for example, Residual Network (ResNet) or EfficientNet) will be adapted for *multi-label classification* to identify multiple defect types present in a single wafer map.
 
+=======
++ *Defect Classification Model*
 
-== Explainability Module
+  A deep learning model (e.g., ResNet or EfficientNet) will be adapted for multi-label classification to identify multiple defect types present in a single wafer map.
+>>>>>>> Stashed changes
 
++ *Explainability Module*
+
+<<<<<<< Updated upstream
 
 Techniques such as Gradient-weighted Class Activation Mapping (Grad-CAM) will be used to highlight important regions in the wafer map that influenced each detected defect pattern.
 
+=======
+  Techniques such as Grad-CAM will be used to highlight important regions in the wafer map that influenced each detected defect pattern.
+>>>>>>> Stashed changes
 
-== Root Cause Analysis (RCA) Engine
++ *Root Cause Analysis (RCA) Engine*
 
+<<<<<<< Updated upstream
 
 A knowledge-based mapping will connect defect patterns to likely process issues and machine types.
 
@@ -78,6 +93,18 @@ The system will generate:
 - Explanation (key contributing regions for each defect)
 - Root cause suggestions
 - Actionable recommendations
+=======
+  A knowledge-based mapping will connect defect patterns to likely process issues and machine types.
+
++ *Decision Support Layer*
+
+  The system will generate:
+
+  - Diagnosis (multiple defect types + confidence scores)
+  - Explanation (key contributing regions for each defect)
+  - Root cause suggestions
+  - Actionable recommendations
+>>>>>>> Stashed changes
 
 
 = Dataset
@@ -109,6 +136,15 @@ Due to computational constraints, a subset of the dataset will be used.
 = Methodology
 
 
+<<<<<<< Updated upstream
+=======
+The models used for solving this problem will be implemented in Python using 
+- PyTorch / TensorFlow 
+- NumPy, Pandas
+- Matplotlib / OpenCV
+- PyQt (for user interface)
+
+>>>>>>> Stashed changes
 == Step 1: Data Preprocessing
 
 
@@ -195,6 +231,7 @@ Generate structured output including:
   - Inspect CVD chamber gas distribution
   - Check wafer handling robot alignment
 
+<<<<<<< Updated upstream
 
 = Tools and Technologies
 
@@ -205,6 +242,8 @@ Generate structured output including:
 - Matplotlib or Open Source Computer Vision Library (OpenCV)
 - PyQt (Python bindings for the Qt framework, used for the user interface)
 
+=======
+>>>>>>> Stashed changes
 
 = Division of Work (Tentative)
 
