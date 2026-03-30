@@ -1,0 +1,185 @@
+#set document(title: "Explainable AI-Based Wafer Map Defect Diagnosis and Decision Support System")
+#set page(paper: "a4", margin: 1in)
+#set text(size: 12pt)
+#set heading(numbering: "1.")
+
+#align(center)[
+  #text(size: 16pt, weight: "bold")[
+    Explainable AI-Based Wafer Map Defect Diagnosis and Decision Support System --- Initial Draft
+  ]
+
+  #v(0.5em)
+
+  Abhirup Sain (T14H06318) \
+  David Spickenheuer (T14H06329) \
+  Martin Werner (T14H06319) \
+  Matti Lehmann (T14H06309) \
+  Staniya Thomas (T14H06310)
+]
+
+#v(1em)
+
+= Project Motivation
+
+In semiconductor manufacturing, wafer maps visually represent the spatial distribution of defective dies. Engineers rely on these patterns to identify process issues and diagnose failures. However, this process is time-consuming and depends heavily on expert knowledge.
+
+In practice, a single wafer may exhibit *multiple defect patterns simultaneously*, making diagnosis more complex and increasing the difficulty of identifying root causes.
+
+This project aims to develop an *Explainable AI Decision Support System* that assists engineers in identifying defect patterns and understanding their possible root causes. Instead of providing only a classification result, the system will generate interpretable insights and actionable recommendations.
+
+= Problem Statement
+
+Given a wafer map image, the system should:
+
+- Detect and classify *one or more defect patterns* (multi-label classification)
+- Provide an explanation of why each pattern is identified
+- Suggest likely process-related causes for each detected defect
+- Recommend possible actions for engineers
+
+The system does not provide guaranteed conclusions but supports decision-making under uncertainty.
+
+= Proposed System Overview
+
+The system consists of four main components:
+
+== Defect Classification Model
+
+A deep learning model (e.g., ResNet or EfficientNet) will be adapted for *multi-label classification* to identify multiple defect types present in a single wafer map.
+
+== Explainability Module
+
+Techniques such as Grad-CAM will be used to highlight important regions in the wafer map that influenced each detected defect pattern.
+
+== Root Cause Analysis (RCA) Engine
+
+A knowledge-based mapping will connect defect patterns to likely process issues and machine types.
+
+== Decision Support Layer
+
+The system will generate:
+
+- Diagnosis (multiple defect types + confidence scores)
+- Explanation (key contributing regions for each defect)
+- Root cause suggestions
+- Actionable recommendations
+
+= Dataset
+
+We will use the WM-811K wafer map dataset, which contains:
+
+- 811,457 wafer maps
+- 46,393 manufacturing lots
+- Multiple defect categories:
+  - Center
+  - Donut
+  - Edge-Loc
+  - Edge-Ring
+  - Loc
+  - Random
+  - Scratch
+  - Near-full
+  - None
+
+Although each wafer is labeled with a primary defect type in the dataset, real-world wafers may contain multiple defect patterns. This project extends the problem to a *multi-label detection setting*.
+
+Due to computational constraints, a subset of the dataset will be used.
+
+= Methodology
+
+== Step 1: Data Preprocessing
+
+- Normalize wafer maps
+- Resize images
+- Convert to suitable input format for CNN
+
+== Step 2: Model Training
+
+- Train a CNN-based classifier (ResNet/EfficientNet)
+- Modify output layer for multi-label classification (sigmoid activation)
+- Use binary cross-entropy loss
+- Evaluate performance using accuracy and confusion matrix
+
+== Step 3: Explainability
+
+- Apply Grad-CAM to visualize important regions
+- Generate separate attention maps for each detected defect
+- Interpret spatial patterns (e.g., edge concentration, circular defects)
+
+== Step 4: Root Cause Mapping
+
+Since no public dataset links defects to machine failures, we will construct a knowledge-based mapping:
+
+- Ring $arrow.r$ Deposition non-uniformity (CVD)
+- Scratch $arrow.r$ Mechanical handling issue
+- Edge defects $arrow.r$ Etching or gas flow imbalance
+
+Multiple detected defects may correspond to multiple possible root causes.
+
+== Step 5: Decision Support Output
+
+Generate structured output including:
+
+- Multiple predictions with confidence scores
+- Explanation of influencing regions for each defect
+- Likely causes
+- Recommended actions
+
+= System Architecture
+
+#figure(
+  image("wafer_system_design.jpg", width: 80%),
+  caption: [Initial system design sketch showing UI layout, model pipeline, and module breakdown],
+) <fig-system-design>
+
+#align(center)[
+  User Input (Wafer Map) $arrow.r$ Preprocessing $arrow.r$ CNN Model (Multi-label Classification) $arrow.r$ Explainability Module (Grad-CAM) $arrow.r$ RCA Engine $arrow.r$ Decision Support Output
+]
+
+= Expected Output Example
+
+- *Detected Defects:*
+  - Edge-Ring (Confidence: 85%)
+  - Scratch (Confidence: 62%)
+- *Explanation:*
+  - Edge concentration near wafer boundary
+  - Linear defect pattern indicating mechanical damage
+- *Likely Causes:*
+  - Gas flow non-uniformity (CVD process)
+  - Robotic handling issue
+- *Recommendation:*
+  - Inspect CVD chamber gas distribution
+  - Check wafer handling robot alignment
+
+= Tools and Technologies
+
+- Python
+- PyTorch / TensorFlow
+- NumPy, Pandas
+- Matplotlib / OpenCV
+- PyQt (for user interface)
+
+= Division of Work (Tentative)
+
+- Data preprocessing and dataset handling
+- Model development and training
+- Explainability and RCA module
+- UI development and system integration
+- Report writing and presentation (all members)
+
+= Expected Contributions
+
+- An explainable AI system for wafer defect diagnosis
+- Multi-label defect detection for realistic scenarios
+- Integration of deep learning with domain knowledge
+- A decision support framework for semiconductor manufacturing
+- Improved interpretability compared to black-box models
+
+= Future Extensions
+
+- Incorporate real fab data with process logs
+- Use temporal wafer data for predictive maintenance
+- Extend system to multi-stage failure diagnosis
+
+= Conclusion
+
+This project combines machine learning, explainability, and domain knowledge to create a practical decision support system. It moves beyond simple prediction by helping users understand and act upon AI-generated insights, making it suitable for real-world semiconductor manufacturing scenarios.
