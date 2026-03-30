@@ -27,9 +27,7 @@
 
 = Project Motivation
 
-
-Process Yield is the deciding factor in economic success of a semiconductor fab. While precise process control is able to prevent most defects, wafers still need to be continously checked for faults. In semiconductor manufacturing, wafer maps visually represent the spatial distribution of defective dies. Engineers rely on these patterns to identify process issues and diagnose failures. Indeally, malfunctions in the tools can be determined and prevented in future manufacturing via parameter tuning and sensor recalibration. This process is time-consuming and depends heavily on expert knowledge.
-
+Process Yield is the deciding factor in economic success of a semiconductor fab. While precise process control is able to prevent most defects, wafers still need to be continuously checked for faults. In semiconductor manufacturing, wafer maps visually represent the spatial distribution of defective dies. Engineers rely on these patterns to identify process issues and diagnose failures. Ideally, malfunctions in the tools can be determined and prevented in future manufacturing via parameter tuning and sensor recalibration. This process is time-consuming and depends heavily on expert knowledge.
 
 In practice, a single wafer may exhibit multiple defect patterns simultaneously, making diagnosis more complex and increasing the difficulty of identifying root causes. This project aims to develop an Explainable Artificial Intelligence (AI) Decision Support System that assists engineers in identifying defect patterns and understanding their possible root causes. Instead of providing only a classification result, the system will generate interpretable insights and actionable recommendations.
 
@@ -141,8 +139,8 @@ Since no public dataset directly links SECOM (a semiconductor manufacturing sens
 
 
 - Center    → Thin film deposition failure (Chemical Vapor Deposition (CVD) rate drift at wafer center)
-- Donut     → Photoresist redeposition during spin coating or development
-- Edge-Ring → Non-uniform plasma etching at wafer edge
+- Donut → Non-uniform spin coating (radial thickness variation) or Chemical Mechanical Planarization pressure ring effect
+- Edge-Ring → Non-uniform thermal processing (RTP) or irregular PR coating thickness during spin coating
 - Edge-Loc  → Localized thermal non-uniformity (Rapid Thermal Processing (RTP) or furnace)
 - Loc       → Local particle contamination or clogged process nozzle
 - Random    → Airborne contamination or clean room excursion
