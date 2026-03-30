@@ -1,8 +1,10 @@
 #set page(paper: "a4", margin: 1in)
 #set text(size: 12pt)
 #set heading(numbering: "1.")
+#set text(lang: "en", hyphenate: true)
 #set par(justify: true)
 #set page(paper: "a4", margin: 1in, numbering: "1")
+
 
 
 #align(center)[
@@ -33,8 +35,7 @@ In practice, a single wafer may exhibit multiple defect patterns simultaneously,
 
 = Problem Statement
 
-
-Given a wafer map image, the system should:
+To be able to improve the production yield and identify errors in the production process, given a wafer map image, the system should:
 
 
 - Detect and classify one or more defect patterns (multi-label classification)
@@ -51,18 +52,13 @@ The system does not provide guaranteed conclusions but supports decision-making 
 
 The system consists of four main components:
 
++ *Defect Classification Model*
 
-== Defect Classification Model
-
-
-A deep learning model (for example, Residual Network (ResNet) or EfficientNet) will be adapted for *multi-label classification* to identify multiple defect types present in a single wafer map.
-
+  A deep learning model (e.g., ResNet or EfficientNet) will be adapted for multi-label classification to identify multiple defect types present in a single wafer map.
 
 + *Explainability Module*
 
-
-Techniques such as Gradient-weighted Class Activation Mapping (Grad-CAM) will be used to highlight important regions in the wafer map that influenced each detected defect pattern.
-
+  Techniques such as Grad-CAM will be used to highlight important regions in the wafer map that influenced each detected defect pattern.
 
 + *Root Cause Analysis (RCA) Engine*
 
@@ -109,31 +105,36 @@ Due to computational constraints, a subset of the dataset will be used.
 
 
 = Methodology
+The system will be implemented in python using either PyTorch or TensorFlow (still an open question in discussion) for the machine learning, NumPy and Pandas for data analysis and pre-processing, Matplotlib or Open Source Computer Vision Library (OpenCV) for visualization of the results and PyQt for the user interface
+
+
 
 
 == Step 1: Data Preprocessing
 
 
 - Normalize wafer maps
+- Prepare training and Test Data
 - Resize images
+- maybe include additional handcrafted Features like Fourier-transform of the wafer-images
 - Convert to suitable input format for the Convolutional Neural Network (CNN)
 
 
 == Step 2: Model Training
 
+As part of the discussion we came up with two possible general aproaches to realize the classification
 
-- Train a CNN-based classifier (ResNet or EfficientNet)
-- Modify output layer for multi-label classification (sigmoid activation)
-- Use binary cross-entropy loss
-- Evaluate performance using accuracy and confusion matrix
++ single network approach:
+  - a typical convolutional neural network (CNN) maps the multi-defect wafer maps to the likelihood values for all classes
+
++ a dual network approach:
+  - an image segmentation model maps the multi-defect wafer to activation maps for the individual defect classes
+  - a classification model maps the single-defect activation maps to the likelihoods values for all classes
+  - this would pose the advantage of being able to handle multi deffect wafers, and would provide a higher explainability
+
+   
 
 
-== Step 3: Explainability
-
-
-- Apply Grad-CAM to visualize important regions
-- Generate separate attention maps for each detected defect
-- Interpret spatial patterns (for example, edge concentration or circular defects)
 
 
 == Step 4: Root Cause Knowledge Mapping
@@ -164,21 +165,14 @@ Generate structured output including:
 - Multiple predictions with confidence scores
 - Explanation of influencing regions for each defect
 - Likely causes
-- Recommended actions
-
-
-= System Architecture
-
+- Optionally a last layer consisting of an LLM-wrapper could be added to give advice on what to fix based on the classified error and the root cause analysis
+-UI for wafer image input and classification/advice
 
 #figure(
   image("wafer_system_design.jpg", width: 80%),
   caption: [Initial system design sketch showing User Interface (UI) layout, model pipeline, and module breakdown],
 ) <fig:system-design>
 
-
-#align(center)[
-  User Input (Wafer Map) -> Preprocessing -> CNN Model (Multi-label Classification) -> Explainability Module (Grad-CAM) -> RCA Engine -> Decision Support Output
-]
 
 
 = Expected Output Example
@@ -198,24 +192,15 @@ Generate structured output including:
   - Check wafer handling robot alignment
 
 
-= Tools and Technologies
-
-
-- Python
-- PyTorch or TensorFlow
-- NumPy, Pandas
-- Matplotlib or Open Source Computer Vision Library (OpenCV)
-- PyQt (Python bindings for the Qt framework, used for the user interface)
-
 
 = Division of Work (Tentative)
 
 
 - Data preprocessing and dataset handling
 - Model development and training
-- Explainability and RCA module
+- Explainability and interpretation
 - UI development and system integration
-- Report writing and presentation (all members)
+- Report writing and presentation 
 
 
 = Expected Contributions
@@ -234,9 +219,3 @@ Generate structured output including:
 - Incorporate real fabrication facility data with process logs
 - Use temporal wafer data for predictive maintenance
 - Extend system to multi-stage failure diagnosis
-
-
-= Conclusion
-
-
-This project combines machine learning, explainability, and domain knowledge to create a practical decision support system. It moves beyond simple prediction by helping users understand and act upon AI-generated insights, making it suitable for real-world semiconductor manufacturing scenarios.
