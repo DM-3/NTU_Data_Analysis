@@ -4,7 +4,7 @@
 
 #align(center)[
   #text(size: 16pt, weight: "bold")[
-    Explainable AI-Based Wafer Map Defect Diagnosis and Decision Support System - Initial Draft
+    Explainable AI-Based Wafer Map Defect Diagnosis and Decision Support System
   ]
 
   #v(0.5em)
@@ -20,15 +20,15 @@
 
 In semiconductor manufacturing, wafer maps visually represent the spatial distribution of defective dies. Engineers rely on these patterns to identify process issues and diagnose failures. However, this process is time-consuming and depends heavily on expert knowledge.
 
-In practice, a single wafer may exhibit *multiple defect patterns simultaneously*, making diagnosis more complex and increasing the difficulty of identifying root causes.
+In practice, a single wafer may exhibit multiple defect patterns simultaneously, making diagnosis more complex and increasing the difficulty of identifying root causes.
 
-This project aims to develop an *Explainable AI Decision Support System* that assists engineers in identifying defect patterns and understanding their possible root causes. Instead of providing only a classification result, the system will generate interpretable insights and actionable recommendations.
+This project aims to develop an Explainable AI Decision Support System that assists engineers in identifying defect patterns and understanding their possible root causes. Instead of providing only a classification result, the system will generate interpretable insights and actionable recommendations.
 
 = Problem Statement
 
 Given a wafer map image, the system should:
 
-- Detect and classify *one or more defect patterns* (multi-label classification)
+- Detect and classify one or more defect patterns (multi-label classification)
 - Provide an explanation of why each pattern is identified
 - Suggest likely process-related causes for each detected defect
 - Recommend possible actions for engineers
@@ -102,15 +102,20 @@ Due to computational constraints, a subset of the dataset will be used.
 - Generate separate attention maps for each detected defect
 - Interpret spatial patterns (e.g., edge concentration, circular defects)
 
-== Step 4: Root Cause Mapping
+Since no public dataset directly links SECOM sensor readings to WM-811K
+defect labels, we construct the following knowledge-based mapping:
 
-Since no public dataset links defects to machine failures, we will construct a knowledge-based mapping:
+- Center      → Thin film deposition failure (CVD rate drift at wafer center)
+- Donut       → Photoresist redeposition during spin coating / develop
+- Edge-Ring   → Non-uniform plasma etching at wafer edge
+- Edge-Loc    → Localized thermal non-uniformity (RTP/furnace)
+- Loc         → Local particle contamination or clogged process nozzle
+- Random      → Airborne contamination / clean room excursion
+- Scratch     → Mechanical handling damage or CMP over-polishing
+- Near-Full   → Catastrophic process excursion (full step failure)
 
-- Ring -> Deposition non-uniformity (CVD)
-- Scratch -> Mechanical handling issue
-- Edge defects -> Etching or gas flow imbalance
-
-Multiple detected defects may correspond to multiple possible root causes.
+Multiple detected defect types on a single wafer indicate concurrent
+failure modes and are handled by assigning multi-label root cause sets.
 
 == Step 5: Decision Support Output
 
