@@ -23,13 +23,10 @@
 = Project Motivation
 
 
-In semiconductor manufacturing, wafer maps visually represent the spatial distribution of defective dies. Engineers rely on these patterns to identify process issues and diagnose failures. However, this process is time-consuming and depends heavily on expert knowledge.
+Process Yield is the deciding factor in economic success of a semiconductor fab. While precise process control is able to prevent most defects, wafers still need to be continously checked for faults. In semiconductor manufacturing, wafer maps visually represent the spatial distribution of defective dies. Engineers rely on these patterns to identify process issues and diagnose failures. Indeally, malfunctions in the tools can be determined and prevented in future manufacturing via parameter tuning and sensor recalibration. This process is time-consuming and depends heavily on expert knowledge.
 
 
-In practice, a single wafer may exhibit multiple defect patterns simultaneously, making diagnosis more complex and increasing the difficulty of identifying root causes.
-
-
-This project aims to develop an Explainable Artificial Intelligence (AI) Decision Support System that assists engineers in identifying defect patterns and understanding their possible root causes. Instead of providing only a classification result, the system will generate interpretable insights and actionable recommendations.
+In practice, a single wafer may exhibit multiple defect patterns simultaneously, making diagnosis more complex and increasing the difficulty of identifying root causes. This project aims to develop an Explainable Artificial Intelligence (AI) Decision Support System that assists engineers in identifying defect patterns and understanding their possible root causes. Instead of providing only a classification result, the system will generate interpretable insights and actionable recommendations.
 
 
 = Problem Statement
