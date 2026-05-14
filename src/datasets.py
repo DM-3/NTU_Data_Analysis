@@ -26,13 +26,21 @@ class WM_811K():
             ax.set_title(name)
 
 class WM_811K_preprocessed():
+
     def __init__(self):
-        path = os.path.join('..', 'data', 'LSWMD_slimmed.pkl')
-        df = pd.read_pickle(path)
-        self.X = df['waferMap'].apply(np.array).to_numpy()
-        df['label_int'], lnames = pd.factorize(df['label'])
-        self.labels = df['label_int'].to_numpy()
-        self.label_names = lnames
+        data = np.load('wafer_dataset_96x96.npz')
+
+        self.X_train = data['X_train']
+        self.X_test =  data['X_test']
+        self.labels_train =data['y_train']
+        self.labels_test = data['y_test']
+        self.X = np.concatenate((data['X_train'], data['X_test']), axis=0)
+        self.labels = np.concatenate((data['y_train'], data['y_test']), axis=0)
+        
+        self.label_names = [
+            'Center', 'Donut', 'Edge-Loc', 'Edge-Ring', 
+            'Loc', 'Near-full', 'Random', 'Scratch', 'none'
+        ]
 
     def preview(self):
         _, axs = plt.subplots(3,3)
@@ -42,5 +50,7 @@ class WM_811K_preprocessed():
 
             indices = np.where(self.labels == i)[0]
             idx = indices[np.random.randint(0, len(indices))]
-            ax.imshow(self.X[idx])
+            
+            ax.imshow(self.X[idx].squeeze())
             ax.set_title(name)
+
