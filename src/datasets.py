@@ -2,14 +2,19 @@ import numpy as np
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
+import tensorflow as tf
 
 
 
 class WM_811K():
-    def __init__(self):
+    def __init__(self, imsize=(64,64)):
         path = os.path.join('..', 'data', 'LSWMD_slimmed.pkl')
         df = pd.read_pickle(path)
-        self.X = df['waferMap'].apply(np.array).to_numpy()
+
+        image_list = [tf.image.resize(tf.expand_dims(tf.convert_to_tensor(x), -1), imsize) 
+                                                     for x in df['waferMap']]
+        self.X = tf.convert_to_tensor(image_list)
+
         df['label_int'], lnames = pd.factorize(df['label'])
         self.labels = df['label_int'].to_numpy()
         self.label_names = lnames
