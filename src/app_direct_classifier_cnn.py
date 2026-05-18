@@ -10,11 +10,16 @@ import streamlit.components.v1 as components
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 from io import BytesIO
+from datasets import WM_811K
+import os
+
+# Grab dataset for reference
+dataset = WM_811K((64, 64))
 
 # Load trained model
 @st.cache_resource
 def load_my_model():
-    return load_model("models/direct_classifier_cnn.keras")
+    return load_model(os.path.join('..', 'models', 'direct_classifier_cnn.keras'))
 
 model = load_my_model()
 
@@ -240,15 +245,15 @@ if mode != st.session_state.last_mode:
 # Dictionary mapping defect names
 # to corresponding icon image paths
 defect_icons = {
-    "Center": "icons/center.png",
-    "Donut": "icons/donut.png",
-    "Edge-Loc": "icons/edge-loc.png",
-    "Edge-Ring": "icons/edge-ring.png",
-    "Loc": "icons/local.png",
-    "Random": "icons/random.png",
-    "Scratch": "icons/scratch.png",
-    "Near-full": "icons/near-full.png",
-    "None": "icons/none.png",
+    "Center":    os.path.join('..', 'icons', 'center.png'),
+    "Donut":     os.path.join('..', 'icons', 'donut.png'),
+    "Edge-Loc":  os.path.join('..', 'icons', 'edge-loc.png'),
+    "Edge-Ring": os.path.join('..', 'icons', 'edge-ring.png'),
+    "Loc":       os.path.join('..', 'icons', 'local.png'),
+    "Random":    os.path.join('..', 'icons', 'random.png'),
+    "Scratch":   os.path.join('..', 'icons', 'scratch.png'),
+    "Near-full": os.path.join('..', 'icons', 'near-full.png'),
+    "None":      os.path.join('..', 'icons', 'none.png'),
 }
 
 
@@ -295,17 +300,6 @@ def preprocess_image(pil_image):
 
 # Temporary AI prediction function
 # Replace later with real ML model inference
-label_names = [
-    "Center",
-    "Donut",
-    "Edge-Loc",
-    "Edge-Ring",
-    "Loc",
-    "Random",
-    "Scratch",
-    "Near-full",
-    "None",
-]
 
 def predict_defects(image):
 
@@ -313,10 +307,7 @@ def predict_defects(image):
     # add batch dimension
     img = np.expand_dims(img, axis=0)
     preds = model.predict(img)[0]
-    return {
-        label_names[i]: float(preds[i])
-        for i in range(len(label_names))
-    }
+    return { name: float(preds[i]) for i, name in enumerate(dataset.label_names) }
 
 
 # ==================================================
