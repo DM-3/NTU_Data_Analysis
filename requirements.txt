@@ -4,3 +4,7 @@ matplotlib==3.10.0
 tensorflow-cpu
 streamlit
 streamlit-drawable-canvas
+tqdm
+jupyter
+ipywidgets
+iprogress
