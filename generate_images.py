@@ -1,14 +1,23 @@
+import pickle
 import numpy as np
 import os
 from PIL import Image
-import matplotlib.pyplot as plt
-data = np.load("src/wafer_dataset_96x96.npz")
-X = data["X_test"]
-y = data["y_test"]
 
+# =========================
+# LOAD PKL
+# =========================
+with open("data/LSWMD_slimmed.pkl", "rb") as f:
+    df = pickle.load(f)
+
+print(type(df))
+print(df.head())
+
+# =========================
+# SETTINGS
+# =========================
 label_names = [
     "Center", "Donut", "Edge-Loc", "Edge-Ring",
-    "Loc", "Random", "Scratch", "Near-full", "None"
+    "Loc", "Random", "Scratch", "Near-full"
 ]
 
 os.makedirs("generated_images", exist_ok=True)
@@ -16,25 +25,32 @@ os.makedirs("generated_images", exist_ok=True)
 SAMPLES_PER_CLASS = 20
 counter = 0
 
-for class_id in range(len(label_names)):
-    indices = np.where(y == class_id)[0]
-    
-    selected = np.random.choice(indices, SAMPLES_PER_CLASS, replace=False)
+# =========================
+# GENERATE IMAGES
+# =========================
+for label in label_names:
 
-    for idx in selected:
-        img = X[idx].squeeze()   # values: 0,1,2
-        label = label_names[class_id]
-        norm_img = img / 2.0   # since values are 0,1,2
-        # Apply viridis colormap
-        colored = plt.cm.viridis(norm_img)
-        # Convert to 0-255 RGB
-        rgb = (colored[:, :, :3] * 255).astype(np.uint8)
-        # ✅ Ensure correct color mode
-        image = Image.fromarray(rgb, mode="RGB")
+    # filter rows of that class
+    subset = df[df["label"] == label]
+
+    # safety check
+    if len(subset) < SAMPLES_PER_CLASS:
+        print(f"⚠️ Not enough samples for {label}")
+        continue
+
+    sampled = subset.sample(SAMPLES_PER_CLASS, random_state=42)
+
+    for _, row in sampled.iterrows():
+        wafer = np.array(row["waferMap"])  # shape ~ (H, W), values {0,1,2}
+
+        # ✅ scale for visibility (CRITICAL)
+        wafer_vis = (wafer / 2.0 * 255).astype(np.uint8)
+
+        image = Image.fromarray(wafer_vis, mode="L")
 
         filename = f"generated_images/{counter}_{label}.png"
         image.save(filename)
 
         counter += 1
 
-print("✅ Balanced colored dataset generated")
+print("✅ Images generated from PKL correctly")
