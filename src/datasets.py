@@ -26,6 +26,25 @@ class WM_811K():
     n_classes = len(defect_to_int)
 
 
+    @staticmethod
+    def preprocess_image(img: 'tf.Tensor|np.array', size: tuple[int,int]):
+        img = tf.convert_to_tensor(img, dtype=tf.float32)
+        img = tf.squeeze(img)
+        img = tf.expand_dims(img, -1)
+        img = tf.maximum(img - 1.0, 0.0)
+        img = tf.image.resize(img, size)
+        return img
+
+    
+    @staticmethod
+    def augment_image(img: tf.Tensor):
+        img = tf.image.random_flip_left_right(img)
+        img = tf.image.random_flip_up_down(img)
+        img = tf.image.rot90(img, k=np.random.randint(4))
+        img = tf.minimum(img * (1.0 + np.random.rand()), 1.0)
+        return img
+
+
     def __init__(self, imsize=(64,64)):
         self.imsize = imsize
         self.class_samples = { i: [] for i in WM_811K.defect_from_int }
@@ -35,25 +54,8 @@ class WM_811K():
         df = pd.read_pickle(path)
         for row in tqdm(df.itertuples(index=False), total=len(df)):
             i = WM_811K.defect_to_int[row.label]
-            img = self.preprocess_image(row.waferMap)
+            img = WM_811K.preprocess_image(row.waferMap, self.imsize)
             self.class_samples[i].append(img)
-
-
-    def preprocess_image(self, img: 'tf.Tensor|np.array'):
-        img = tf.convert_to_tensor(img, dtype=tf.float32)
-        img = tf.squeeze(img)
-        img = tf.expand_dims(img, -1)
-        img = tf.maximum(img - 1.0, 0.0)
-        img = tf.image.resize(img, self.imsize)
-        return img
-
-
-    def augment_image(self, img: tf.Tensor):
-        img = tf.image.random_flip_left_right(img)
-        img = tf.image.random_flip_up_down(img)
-        img = tf.image.rot90(img, k=np.random.randint(4))
-        img = tf.minimum(img * (1.0 + np.random.rand()), 1.0)
-        return img
 
 
     def dataset_single_defect(self):
@@ -62,14 +64,14 @@ class WM_811K():
                 label = np.random.randint(WM_811K.n_classes) - 1
                 samples = self.class_samples[label]
                 img = samples[np.random.randint(len(samples))]
-                img = self.augment_image(img)
+                img = WM_811K.augment_image(img)
                 yield (img, tf.one_hot(label, depth=WM_811K.n_classes-1))
         
         return tf.data.Dataset.from_generator(_generator,
             output_types=(tf.float32, tf.float32),
             output_shapes=((*self.imsize, 1), (WM_811K.n_classes - 1,)),
         ).repeat()
-    
+
 
     def __create_multi_defect_sample(self):
         input_img = tf.zeros((*self.imsize, 1))
@@ -82,7 +84,7 @@ class WM_811K():
             label = np.argmax(class_probabilities)
             samples = self.class_samples[label]
             img = samples[np.random.randint(len(samples))]
-            img = self.augment_image(img)
+            img = WM_811K.augment_image(img)
 
             # roughly check how much information will be lost/gained
             total = tf.reduce_sum(input_img) + 0.1
