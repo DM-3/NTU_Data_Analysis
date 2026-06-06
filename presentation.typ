@@ -1,63 +1,60 @@
-// ============================================================
-// WaferDX — Defence Presentation
-// NTU Data Analysis and Machine Learning with Python
-// ============================================================
-
 #set page(
   paper: "presentation-16-9",
-  margin: (top: 1.2cm, bottom: 1.2cm, left: 1.5cm, right: 1.5cm),
+  margin: (top: 0.9cm, bottom: 0.9cm, left: 1.2cm, right: 1.2cm),
   fill: rgb("#0f1923"),
 )
 
 #set text(
   font: "New Computer Modern",
-  size: 18pt,
+  size: 16pt,
   fill: rgb("#e8edf2"),
   lang: "en",
 )
 
-#set par(leading: 0.75em)
+#set par(leading: 0.68em)
+
+#let total-slides = 15
 
 // ── Colour palette ──────────────────────────────────────────
-#let accent   = rgb("#38bdf8")   // sky blue  — titles, highlights
-#let accent2  = rgb("#f97316")   // orange    — warnings / key numbers
-#let muted    = rgb("#94a3b8")   // slate     — captions, secondary text
-#let surface  = rgb("#1e2d3d")   // card background
-#let good     = rgb("#4ade80")   // green     — positive results
-#let bad      = rgb("#f87171")   // red       — failure / limitation
+#let accent   = rgb("#38bdf8")
+#let accent2  = rgb("#f97316")
+#let muted    = rgb("#94a3b8")
+#let surface  = rgb("#1e2d3d")
+#let good     = rgb("#4ade80")
+#let bad      = rgb("#f87171")
 
 // ── Helper components ────────────────────────────────────────
 
 // Full-width horizontal rule
 #let hrule = {
-  v(0.3em)
-  line(length: 100%, stroke: 0.4pt + muted)
-  v(0.3em)
+  v(0.22em)
+  line(length: 100%, stroke: 0.35pt + muted)
+  v(0.22em)
 }
 
 // Slide title bar
 #let slide-title(t) = {
   rect(
     width: 100%,
-    inset: (x: 14pt, y: 8pt),
+    inset: (x: 12pt, y: 7pt),
     radius: 5pt,
     fill: surface,
     stroke: (left: 3pt + accent),
   )[
-    #text(size: 22pt, weight: "bold", fill: accent)[#t]
+    #text(size: 20pt, weight: "bold", fill: accent)[#t]
   ]
-  v(0.6em)
+  v(0.45em)
 }
 
 // Coloured badge
 #let badge(content, color: accent) = {
   box(
-    inset: (x: 8pt, y: 3pt),
+    inset: (x: 7pt, y: 2.5pt),
     radius: 4pt,
     fill: color.lighten(80%),
     stroke: 0.5pt + color,
   )[
-    #text(size: 13pt, fill: color, weight: "bold")[#content]
+    #text(size: 12pt, fill: color, weight: "bold")[#content]
   ]
 }
 
@@ -65,7 +62,7 @@
 #let card(content, width: 100%) = {
   rect(
     width: width,
-    inset: 12pt,
+    inset: 10pt,
     radius: 5pt,
     fill: surface,
     stroke: 0.5pt + muted.lighten(20%),
@@ -75,18 +72,18 @@
 // Bullet item with accent dot
 #let item(content) = {
   grid(
-    columns: (10pt, 1fr),
-    column-gutter: 6pt,
-    text(fill: accent)[▸],
+    columns: (9pt, 1fr),
+    column-gutter: 5pt,
+    text(fill: accent, size: 13pt)[▸],
     content,
   )
-  v(0.25em)
+  v(0.16em)
 }
 
-// ── Page counter helper ──────────────────────────────────────
-#let slide-num(n, total: 14) = {
+// Page counter helper
+#let slide-num(n, total: total-slides) = {
   align(right)[
-    #text(size: 11pt, fill: muted)[#n / #total]
+    #text(size: 10pt, fill: muted)[#n / #total]
   ]
 }
 
@@ -554,10 +551,8 @@
 
   card[
     #text(fill: bad, weight: "bold")[Failure 1: Center / Near-full Confusion]
-    #v(0.4em)
     #item[Best CNN assigns Near-full confidence *0.90–0.98* to Center inputs]
     #item[*18 out of 20* Center images predicted as Near-full]
-    #v(0.4em)
     #hrule
     #text(fill: accent2, weight: "bold")[Operational consequence:]
     #v(0.2em)
@@ -566,8 +561,6 @@
       Near-full → *catastrophic failure, immediate lot quarantine*\
       A top-1-only UI would trigger a drastic response for a routine issue *90% of the time.*
     ]
-    #v(0.3em)
-    #text(size: 13pt, fill: muted)[High confidence + wrong answer is *more dangerous* than low confidence + wrong answer — the warning threshold would not fire.]
   ],
 
   card[
@@ -675,31 +668,25 @@
   column-gutter: 12pt,
 
   card[
-    #badge("1 · Near-term")
-    #v(0.4em)
     #text(fill: accent, weight: "bold")[Per-class calibration]
     #v(0.3em)
     #text(size: 14pt)[~500 samples/class calibration set from WM-811K + isotonic regression → fix Center/Near-full overconfidence so threshold warnings fire correctly]
   ],
 
   card[
-    #badge("2 · Medium-term")
-    #v(0.4em)
     #text(fill: accent, weight: "bold")[Multi-defect maps]
     #v(0.3em)
     #text(size: 14pt)[Synthetic multi-label maps via logical union of single-class samples → multi-label loss (binary cross-entropy per class) + per-class F1 evaluation]
   ],
 
   card[
-    #badge("3 · Long-term")
-    #v(0.4em)
     #text(fill: accent, weight: "bold")[Learned RCA]
     #v(0.3em)
     #text(size: 14pt)[Integrate proprietary fab process logs (tool IDs, chamber sensors, run timestamps) to partially replace heuristic mappings with empirically validated causal associations]
   ],
 )
 
-#v(1em)
+#v(0.4em)
 #align(center)[
   #rect(
     width: 75%,
@@ -718,7 +705,7 @@
   ]
 ]
 
-#v(0.6em)
+#v(0.2em)
 #align(center)[#text(size: 14pt, fill: muted)[Thank you — questions welcome]]
 
 #slide-num(14)
