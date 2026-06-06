@@ -13,7 +13,7 @@
 
 #set par(leading: 0.68em)
 
-#let total-slides = 15
+#let total-slides = 20
 
 // ── Colour palette ──────────────────────────────────────────
 #let accent   = rgb("#38bdf8")
@@ -102,8 +102,8 @@
   )[WaferDX]
   #v(0.4em)
   #text(size: 20pt, fill: rgb("#e8edf2"))[
-    An Explainable AI Decision Support System \
-    for Semiconductor Wafer Defect Diagnosis
+    Explainable AI-Based Wafer Map \
+    Defect Diagnosis and Decision Support System
   ]
   #v(1.6em)
   #hrule
@@ -120,53 +120,6 @@
 
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 2 — Agenda                                        ║
-// ╚══════════════════════════════════════════════════════════╝
-#slide-title[Presentation Outline]
-
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 16pt,
-  row-gutter: 10pt,
-
-  card[
-    #text(fill: accent, weight: "bold")[Problem & Motivation]
-    #v(0.4em)
-    #item[Semiconductor yield recovery bottleneck]
-    #item[Limitations of existing tools]
-    #item[What WaferDX solves]
-  ],
-
-  card[
-    #text(fill: accent, weight: "bold")[System Design]
-    #v(0.4em)
-    #item[Architecture overview]
-    #item[3 key design decisions]
-    #item[Processing pipeline]
-  ],
-
-  card[
-    #text(fill: accent, weight: "bold")[Evaluation]
-    #v(0.4em)
-    #item[4 model variants · 160 test images]
-    #item[Per-class accuracy breakdown]
-    #item[Critical failure cases]
-  ],
-
-  card[
-    #text(fill: accent, weight: "bold")[Insights & Future Work]
-    #v(0.4em)
-    #item[Transferable design principles]
-    #item[Governance risks]
-    #item[Extensions with more resources]
-  ],
-)
-
-#slide-num(2)
-#pagebreak()
-
-
-// ╔══════════════════════════════════════════════════════════╗
 // ║  SLIDE 3 — Application Context                          ║
 // ╚══════════════════════════════════════════════════════════╝
 #slide-title[The Problem: Wafer Defect Diagnosis]
@@ -176,9 +129,9 @@
   column-gutter: 18pt,
 
   [
-    #item[A 300mm fab lot contains *25 wafers*, each passing through *400–600 process steps*]
-    #item[Electrical test produces a *binary die map*: pass / fail at every die location]
-    #item[The *spatial pattern* of failures — not the count — identifies the responsible tool]
+    #item[Chips manufactured on thin circular silicon discs — *wafers* — with hundreds of chips etched side-by-side]
+    #item[After probe test, every die result is stored as a pixel: *0 = background, 1 = pass, 2 = fail*]
+    #item[The *spatial pattern* of failures — not the count — identifies the responsible process step]
     #v(0.6em)
     #hrule
     #v(0.4em)
@@ -186,14 +139,14 @@
       columns: (1fr, 1fr),
       column-gutter: 8pt,
       card(width: 100%)[
-        #text(fill: accent2, weight: "bold")[Center cluster]
+        #text(fill: accent2, weight: "bold")[Ring around edge]
         #v(0.2em)
-        #text(size: 14pt)[→ CVD deposition drift]
+        #text(size: 14pt)[→ RTP thermal non-uniformity]
       ],
       card(width: 100%)[
-        #text(fill: accent2, weight: "bold")[Linear scratch]
+        #text(fill: accent2, weight: "bold")[Linear streak]
         #v(0.2em)
-        #text(size: 14pt)[→ Robot arm damage]
+        #text(size: 14pt)[→ Robot arm damage / CMP]
       ],
     )
   ],
@@ -201,12 +154,12 @@
   card[
     #text(fill: accent, weight: "bold", size: 16pt)[Why speed matters]
     #v(0.5em)
-    #item[Every undetected faulty step processes *more wafers under failure conditions*]
-    #item[Manual map interpretation is *error-prone* and a yield-recovery *bottleneck*]
+    #item[Modern fabs produce *thousands of wafers per day* — manual review impossible]
+    #item[Every undetected fault processes *more wafers* under failure conditions]
+    #item[Getting it wrong costs *millions in materials and machine time*]
     #v(0.6em)
     #text(fill: muted, size: 14pt)[
-      Existing tools either detect anomalies without classifying them, or classify without explaining
-      *which spatial region* drove the decision.
+      WM-811K dataset: *811,457* total wafer maps · *only 12,822* carry a defect label
     ]
   ],
 )
@@ -216,49 +169,68 @@
 
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 4 — WaferDX Solution                             ║
+// ║  SLIDE 4 — WM-811K Dataset & Defect Classes             ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[WaferDX: What the System Does]
+#slide-title[WM-811K Dataset: 8 Defect Classes + None]
 
 #grid(
   columns: (1fr, 1fr, 1fr, 1fr),
   column-gutter: 10pt,
+  row-gutter: 10pt,
 
   card[
-    #align(center)[#text(size: 28pt)[🔍]]
-    #align(center)[#text(fill: accent, weight: "bold", size: 14pt)[Classify]]
+    #align(center)[#text(fill: accent2, weight: "bold")[Center]]
     #v(0.3em)
-    #text(size: 14pt)[CNN classifies wafer map against *8 defect types* from WM-811K (811K maps)]
+    #text(size: 14pt)[Failure cluster at wafer centre → CVD deposition drift / spin-coat blockage]
   ],
 
   card[
-    #align(center)[#text(size: 28pt)[🗺️]]
-    #align(center)[#text(fill: accent, weight: "bold", size: 14pt)[Explain]]
+    #align(center)[#text(fill: accent2, weight: "bold")[Donut]]
     #v(0.3em)
-    #text(size: 14pt)[*Grad-CAM heatmap* shows which spatial region drove the prediction]
+    #text(size: 14pt)[Ring-shaped failure band → non-uniform spin coating / CMP pressure ring]
   ],
 
   card[
-    #align(center)[#text(size: 28pt)[🔧]]
-    #align(center)[#text(fill: accent, weight: "bold", size: 14pt)[Advise]]
+    #align(center)[#text(fill: accent2, weight: "bold")[Edge-Loc]]
     #v(0.3em)
-    #text(size: 14pt)[*Knowledge-based RCA* maps defect class → process step → recommended action]
+    #text(size: 14pt)[Localised arc of failures on edge → edge-bead removal issue]
   ],
 
   card[
-    #align(center)[#text(size: 28pt)[⚠️]]
-    #align(center)[#text(fill: accent, weight: "bold", size: 14pt)[Warn]]
+    #align(center)[#text(fill: accent2, weight: "bold")[Edge-Ring]]
     #v(0.3em)
-    #text(size: 14pt)[*Dual-hypothesis display* when confidence gap between top-1 and top-2 < 0.15]
+    #text(size: 14pt)[Full ring of failures at wafer perimeter → RTP thermal non-uniformity]
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Loc]]
+    #v(0.3em)
+    #text(size: 14pt)[Localised cluster anywhere on wafer → particle contamination]
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Random]]
+    #v(0.3em)
+    #text(size: 14pt)[Scattered failures with no spatial pattern → random contamination events]
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Scratch]]
+    #v(0.3em)
+    #text(size: 14pt)[Linear streak of failures → robot end-effector damage / CMP over-polishing]
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Near-full]]
+    #v(0.3em)
+    #text(size: 14pt)[Almost all dies failing → catastrophic process excursion]
   ],
 )
 
-#v(0.8em)
+#v(0.5em)
 #card[
-  #text(fill: muted, size: 15pt)[
-    *Dataset:* WM-811K · 811,457 maps · 46,393 lots · 8 defect classes + None \
-    *Stack:* TensorFlow/Keras (CNN) · Streamlit (UI) · Grad-CAM (explainability) · Python RCA lookup \
-    *Input:* Upload PNG *or* draw directly on interactive canvas
+  #text(fill: muted, size: 14pt)[
+    *Dataset sparsity:* 811,457 total maps · only 12,822 labelled defects (~1.6%) · *None* class = clean wafer · three-valued pixel encoding {0, 1, 2} specific to probe test output format
   ]
 ]
 
@@ -267,9 +239,188 @@
 
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 5 — Processing Pipeline                          ║
+// ║  SLIDE 5 — Decision-Making Challenges                   ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[System Pipeline]
+#slide-title[Decision-Making Challenges Faced by Engineers]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 16pt,
+
+  card[
+    #text(fill: bad, weight: "bold")[Visual ambiguity]
+    #v(0.4em)
+    #item[*Edge-Loc* and *Edge-Ring* both cluster failures near the wafer perimeter - hard to tell apart]
+    #item[Several defect types share visual features at *64×64 resolution* - difficult even for experts]
+  ],
+
+  card[
+    #text(fill: bad, weight: "bold")[Co-occurring defects]
+    #v(0.4em)
+    #item[Contamination event → random scatter *and* process drift → edge failures *simultaneously*]
+    #item[WM-811K provides *only single-defect labels* — real world is multi-defect]
+  ],
+
+  card[
+    #text(fill: bad, weight: "bold")[Scale makes manual review impossible]
+    #v(0.4em)
+    #item[Modern fabs: *thousands of wafers per day*]
+    #item[No bandwidth to hand-examine every map]
+    #item[Existing tools return a category — *not* which spatial region drove it]
+  ],
+
+  card[
+    #text(fill: bad, weight: "bold")[Existing tools: what but not where]
+    #v(0.4em)
+    #item[Single-label classifiers don't handle *co-occurring* defect types]
+    #item[Grad-CAM only produces *one blended heatmap*, not per-class spatial breakdown]
+    #item[All existing tools are *passive classifiers*]
+  ],
+)
+
+#slide-num(5)
+#pagebreak()
+
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 6 — Related Design Approaches                    ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[Related Design Approaches: Three Historical Camps]
+
+#grid(
+  columns: (1fr, 1fr, 1fr),
+  column-gutter: 12pt,
+
+  card[
+    #text(fill: accent, weight: "bold")[1 · Rule-Based Template Matching]
+    #v(0.4em)
+    #text(fill: good, size: 13pt)[✔ Transparent · Fast]
+    #v(0.3em)
+    #text(fill: bad, size: 13pt)[✘ Cannot adapt to unseen morphologies]
+    #text(fill: bad, size: 13pt)[✘ No concept of multi-defect scenarios]
+    #text(fill: bad, size: 13pt)[✘ Brittle when defect looks slightly different from template]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[2 · Classical ML (SVM / RF)]
+    #v(0.4em)
+    #text(fill: good, size: 13pt)[✔ More flexible than templates]
+    #text(fill: good, size: 13pt)[✔ Works on hand-crafted features]
+    #v(0.3em)
+    #text(fill: bad, size: 13pt)[✘ Requires domain expertise to engineer features]
+    #text(fill: bad, size: 13pt)[✘ Brittle when fab conditions change]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[3 · Deep CNNs]
+    #v(0.4em)
+    #text(fill: good, size: 13pt)[✔ Impressive accuracy on WM-811K]
+    #text(fill: good, size: 13pt)[✔ Multi-label variants handle co-occurrence]
+    #v(0.3em)
+    #text(fill: bad, size: 13pt)[✘ Black box — score but no reason]
+    #text(fill: bad, size: 13pt)[✘ Grad-CAM = single blended map, not per-class]
+    #text(fill: bad, size: 13pt)[✘ All are passive classifiers, not interactive tools]
+  ],
+)
+
+#v(0.5em)
+#card[
+  #text(fill: good, weight: "bold")[WaferDX differentiates by:] #h(6pt)
+  #text(size: 14pt)[Per-class spatial activation maps as *primary output* (not post-hoc) · Multi-label capability *baked into training data design* · Interactive *draw mode* for hypothesis testing]
+]
+
+#slide-num(6)
+#pagebreak()
+
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 7 — System Architecture Overview                 ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[System Architecture: Two-Stage Pipeline]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 18pt,
+
+  [
+    #card[
+      #text(fill: accent, weight: "bold")[Stage 1 — Segmentation Model]
+      #text(size: 12pt, fill: muted)[ (U-Net-inspired · ~3.21 M parameters)]
+      #v(0.4em)
+      #item[Encoder: 4 conv blocks at filter depths *32, 64, 128, 256* + MaxPooling]
+      #item[Bottleneck: GlobalAveragePooling → two Dense layers → reshape + upsample]
+      #item[Skip connections let decoder recover spatial detail lost in bottleneck]
+      #item[Output: *8-channel map at 96×96 resolution* — one channel per defect class]
+      #item[Acts as *spatial analyst*: translates raw wafer map into 8 spatial overlay maps]
+    ]
+    #v(0.5em)
+    
+  ],
+
+  [
+    #card[
+      #text(fill: accent, weight: "bold")[Streamlit UI (app_best_wafer_cnn.py)]
+      #v(0.4em)
+      #item[Loads *best_wafer_cnn.keras* trained model]
+      #item[*Upload mode*: engineer drags in a wafer map PNG/JPG/JPEG]
+      #item[*Draw mode*: freehand canvas sketch for hypothesis testing]
+      #item[Results: *3×3 grid of confidence cards* — defect name + percentage + colour-coded bar]
+      #v(0.3em)
+      #text(size: 13pt)[Cyan/blue: confidence above 70% · Grey: below 30% · Gradient in between]
+    ]
+      ],
+)
+
+#slide-num(7)
+#pagebreak()
+
+#slide-title[System Architecture: Two-Stage Pipeline]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 18pt,
+[
+  #card[
+      #text(fill: accent, weight: "bold")[Stage 2 — Classification Model]
+      #text(size: 12pt, fill: muted)[ (CNN + Spatial Attention · ~2.11 M parameters)]
+      #v(0.4em)
+      #item[Input: 8-channel segmentation output]
+      #item[4 conv blocks each followed by custom *SpatialAttention* layer (CBAM-inspired)]
+      #item[SpatialAttention: avg + max pool across channels → 7×7 conv → soft mask]
+      #item[GlobalAveragePooling → 2 × Dense(512) + BatchNorm + Dropout]
+      #item[Output: *8 sigmoid probabilities* — one per defect class]
+    ]
+],[
+
+
+
+#card[
+      #text(fill: accent2, weight: "bold")[Total Parameters: 5.68 M]
+      #v(0.4em)
+      #text(size: 14pt)[Segmentation: 3.21 M + Classification: 2.11 M]
+      #v(0.4em)
+      #text(fill: muted, size: 13pt)[Comparison baseline: *app_direct_classifier_cnn.py* — same UI experience wired to direct CNN classifier (simpler, no segmentation stage)]
+    ]
+    #v(0.5em)
+    #card[
+      #text(fill: accent, weight: "bold")[System Boundaries]
+      #v(0.3em)
+      #text(size: 13pt)[Works with: 2D PNG/JPG/JPEG wafer maps + freehand drawings]
+      #v(0.2em)
+      #text(size: 13pt)[Does NOT: write to databases, trigger alarms, flag wafers for scrap]
+      #v(0.2em)
+      #text(fill: accent2, size: 13pt, weight: "bold")[Role is entirely advisory — engineer decides]
+    ]]
+)
+
+#slide-num(7)
+#pagebreak()
+
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 8 — Usage Workflow                               ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[Usage Workflow: 4-Step Pipeline]
 
 #align(center)[
   #let step(n, title, detail) = rect(
@@ -293,19 +444,11 @@
 
   #let arrow = align(center)[#text(size: 16pt, fill: muted)[↓]]
 
-  #step("1", "Input", "Upload PNG or draw on canvas")
+  #step("1", "Input", "Upload PNG/JPG/JPEG wafer map OR draw a freehand pattern on interactive canvas")
   #arrow
-  #step("2", "Preprocess", "Grayscale → zero-pad → nearest-neighbour resize 96×96 → normalise to {0.0, 0.5, 1.0}")
+  #step("2", "Preprocess", "Convert to grayscale → normalise pixel values to {0, 1, 2} by rounding pixel/127.5 → resize to 64×64 with padding to preserve aspect ratio")
   #arrow
-  #step("3", "CNN Inference", "Softmax over 8 defect classes")
-  #arrow
-  #step("4", "Grad-CAM", "Gradient of top-class score w.r.t. final conv layer → weighted activation heatmap")
-  #arrow
-  #step("5", "Display", "Ranked probability bars + heatmap overlay")
-  #arrow
-  #step("6", "RCA Lookup", "Defect class → process hypothesis + recommended inspection action")
-  #arrow
-  #step("7", "Multi-hypothesis", [If confidence gap < 0.15 #text(fill: accent2)[→ show dual hypothesis panel]])
+  #step("3", "Inference", "Image → Segmentation model → 8 spatial activation maps at 96×96 → Classification model → 8 sigmoid confidence scores")
   #arrow
   #rect(
     width: 88%,
@@ -314,144 +457,17 @@
     fill: accent.lighten(85%),
     stroke: (left: 3pt + good),
   )[
-    #text(weight: "bold", fill: good)[8 · Engineer Decides] #h(6pt)
-    #text(size: 14pt, fill: muted)[WaferDX never issues a recommendation to act]
-  ]
-]
-
-#slide-num(5)
-#pagebreak()
-
-
-// ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 6 — Design Decision 1                            ║
-// ╚══════════════════════════════════════════════════════════╝
-#slide-title[Design Decision 1: CNN vs. Segmentation Pipeline]
-
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 16pt,
-
-  card[
-    #text(fill: bad, weight: "bold")[Seg → CLF Pipeline (rejected as primary)]
-    #v(0.4em)
-    #item[Segmentation network produces per-pixel activation maps per class]
-    #item[Second classifier operates on those maps]
-    #item[*Theoretically* more interpretable — spatial reasoning visible directly]
-    #v(0.5em)
-    #hrule
-    #text(fill: bad, weight: "bold")[Result: 11.9% accuracy]
-    #v(0.3em)
-    #text(size: 14pt)[Classification head predicted *"Center" with confidence 1.0* for >90% of all inputs — regardless of true class. No discriminative signal from segmentation activations.]
-  ],
-
-  card[
-    #text(fill: good, weight: "bold")[Direct CNN (chosen)]
-    #v(0.4em)
-    #item[Single end-to-end optimization problem]
-    #item[Grad-CAM provides mathematically grounded post-hoc spatial attribution]
-    #item[More stable training, simpler debugging]
-    #v(0.5em)
-    #hrule
-    #text(fill: good, weight: "bold")[Result: 13.1% accuracy (Best CNN)]
-    #v(0.3em)
-    #text(size: 14pt, fill: muted)[Root cause of Seg → CLF failure: two components trained *independently*, no end-to-end gradient flow. Joint training would be correct long-term fix.]
-  ],
-)
-
-#slide-num(6)
-#pagebreak()
-
-
-// ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 7 — Design Decision 2                            ║
-// ╚══════════════════════════════════════════════════════════╝
-#slide-title[Design Decision 2: Class-Agnostic vs. Selective Augmentation]
-
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 16pt,
-
-  card[
-    #text(fill: accent, weight: "bold")[What happened]
-    #v(0.5em)
     #grid(
-      columns: (1fr, 1fr, 1fr),
-      column-gutter: 6pt,
-      align(center)[#text(fill: muted, size: 13pt)[Class]],
-      align(center)[#text(fill: muted, size: 13pt)[No Aug]],
-      align(center)[#text(fill: muted, size: 13pt)[+ Aug]],
-
-      align(center)[Edge-Loc], align(center)[30%], align(center)[#text(fill: good, weight: "bold")[85%]],
-      align(center)[Donut],    align(center)[65%], align(center)[#text(fill: bad, weight: "bold")[10%]],
-    )
-    #v(0.6em)
-    #text(size: 14pt)[*Edge-Loc:* failure can appear at any angular position — orientation invariance *helps*]
-    #v(0.3em)
-    #text(size: 14pt)[*Donut:* radially symmetric ring — rotation removes orientation cues that define the class, *destroying accuracy*]
-  ],
-
-  card[
-    #text(fill: accent, weight: "bold")[Lesson & correct approach]
-    #v(0.5em)
-    #item[Uniform augmentation is *not a safe default* when class identity is geometrically defined]
-    #item[*Class-selective augmentation* is required:]
-    #v(0.2em)
-    #rect(inset: 8pt, fill: rgb("#0f1923"), radius: 4pt)[
-      #text(size: 13pt)[
-        Apply rotation/flip: Edge-Loc, Scratch, Random, Loc\
-        #text(fill: bad)[Exclude:] Donut, Edge-Ring, Center, Near-full
-      ]
-    ]
-    #v(0.4em)
-    #text(size: 13pt, fill: muted)[Not implemented within project timeline — identified post-evaluation. Augmented model retained in UI for class distributions where it helps.]
-  ],
-)
-
-#slide-num(7)
-#pagebreak()
-
-
-// ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 8 — Design Decision 3                            ║
-// ╚══════════════════════════════════════════════════════════╝
-#slide-title[Design Decision 3: Knowledge-Based vs. Learned RCA]
-
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 16pt,
-
-  card[
-    #text(fill: accent, weight: "bold")[Why no learned RCA?]
-    #v(0.4em)
-    #item[Requires labeled causal chains: *wafer map → confirmed tool failure*]
-    #item[No public dataset links WM-811K labels to confirmed fab process failures]
-    #item[SECOM (UCI): sensor data, no spatial maps or defect labels]
-    #item[LLM-generated hypotheses: plausible-sounding but *unverifiable* — rejected]
-  ],
-
-  card[
-    #text(fill: good, weight: "bold")[Knowledge-based lookup (chosen)]
-    #v(0.4em)
-    #grid(
-      columns: (auto, 1fr),
+      columns: (28pt, 1fr),
       column-gutter: 8pt,
-      row-gutter: 5pt,
-      text(fill: accent2, size: 13pt)[Center],   text(size: 13pt)[CVD deposition drift; spin-coat blockage],
-      text(fill: accent2, size: 13pt)[Donut],    text(size: 13pt)[Non-uniform spin coating; CMP pressure ring],
-      text(fill: accent2, size: 13pt)[Edge-Ring], text(size: 13pt)[RTP thermal non-uniformity],
-      text(fill: accent2, size: 13pt)[Scratch],  text(size: 13pt)[Robot end-effector; CMP over-polishing],
-      text(fill: accent2, size: 13pt)[Near-full], text(size: 13pt)[Catastrophic process excursion],
+      align(center)[#badge("4", color: good)],
+      [
+        #text(weight: "bold", fill: good)[Display Results]
+        #h(6pt)
+        #text(size: 14pt, fill: muted)[Confidence cards in 3×3 grid · Bars cyan/blue above 70%, grey below 30%, gradient in between · Engineer inspects per-class activation maps · Engineer decides what to do]
+      ],
     )
-    #v(0.4em)
-    #text(size: 13pt, fill: muted)[Updating for a new failure mode = *edit one dictionary*. No retraining required.]
-  ],
-)
-
-#v(0.5em)
-#card[
-  #text(fill: accent2, weight: "bold")[Scope limit:] #h(4pt)
-  #text(size: 14pt)[Mappings calibrated for standard bulk CMOS FEOL. Not applicable to III-V, MEMS, or advanced packaging without revision. All UI outputs labelled as *"pattern hypothesis"*, not "diagnosis".]
+  ]
 ]
 
 #slide-num(8)
@@ -459,44 +475,278 @@
 
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 9 — Evaluation Setup                             ║
+// ║  SLIDE 9 — Design Decision 1                            ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[Evaluation Setup]
+#slide-title[Design Decision 1: Two-Stage vs. Direct End-to-End Classification]
 
 #grid(
   columns: (1fr, 1fr),
   column-gutter: 16pt,
 
   card[
-    #text(fill: accent, weight: "bold")[Test set]
+    #text(fill: good, weight: "bold")[Two-Stage (chosen)]
     #v(0.4em)
-    #item[160 PNG images generated from WM-811K via `generate_images.py`]
-    #item[*Balanced:* 20 images per class × 8 classes]
-    #item[Single-class only (no multi-defect maps)]
-    #v(0.5em)
-    #text(fill: muted, size: 14pt)[Evaluation baseline: random chance on an 8-class balanced set = *12.5%*]
+    #item[Segmentation output = *interpretable intermediate representation*]
+    #item[When Edge-Ring activation lights up around wafer periphery, you can *see why* the model calls it Edge-Ring]
+    #item[Multi-label capability baked into data design, not architectural add-on]
+    //*Best when:* spatial interpretability matters — which for process fault diagnosis, it almost always does]
   ],
 
   card[
-    #text(fill: accent, weight: "bold")[4 model variants tested]
+    #text(fill: accent2, weight: "bold")[Direct End-to-End (baseline)]
     #v(0.4em)
-    #item[*Best CNN* — direct classifier, no augmentation]
-    #item[*Best CNN + Aug* — rotation + flip augmentation]
-    #item[*Fullstack* — CNN with full preprocessing pipeline]
-    #item[*Seg → CLF* — segmentation-then-classify pipeline]
-    #v(0.4em)
-    #text(size: 14pt, fill: muted)[`test.py` records: full softmax vector, top-3 labels, correctness flag → `evaluation_results.csv`]
+    #item[Simpler to train and deploy]
+    #item[Single end-to-end optimisation problem]
+    #item[*Whenever it got something wrong*, it was genuinely hard to understand why]
+    #item[Grad-CAM patches this partially — rough single blended heatmap, not per-class breakdown]
+
+    //#text(fill: muted, size: 13pt)[*Best when:* fast binary answer needed and spatial explanation doesn't matter]
   ],
 )
+
+#v(0.5em)
+#card[
+  #text(fill: accent2, weight: "bold")[Trade-off:] #h(4pt)
+  #text(size: 14pt)[Two-stage requires more upfront work — segmentation must stabilise before classifier pre-training starts. Pipeline is more complex to debug when both components are unfrozen during fine-tuning. Managed with *ModelCheckpoint* + *EarlyStopping* (patience 10–15 per phase).]
+]
 
 #slide-num(9)
 #pagebreak()
 
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 10 — Accuracy Results                            ║
+// ║  SLIDE 10 — Design Decisions 2 & 3                     ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[Evaluation Results: Per-Class Accuracy]
+#slide-title[Design Decisions 2 & 3: Spatial Attention + Synthetic Multi-Defect Data]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 16pt,
+
+  card[
+    #text(fill: accent, weight: "bold")[Spatial Attention in Every Conv Block]
+    
+    #text(size: 14pt, weight: "bold", fill: muted)[Why:]
+    #item[Scratch defect may cover *less than 5%* of the image — treating all locations equally wastes capacity]
+    #item[CBAM-inspired: pool features across channels → 7×7 conv → soft spatial mask → multiply back onto feature maps]
+    #v(0.3em)
+    #text(size: 14pt, weight: "bold", fill: muted)[Alternative considered:]
+    #item[Channel attention (SE-Net) — focuses on *which feature channels* matter, not *where*; wrong emphasis for a geometry-defined task. ]
+    //#text(fill: muted, size: 13pt)[*Best when:* defects are small and localised. Less critical for Near-full (covers most of wafer) but doesn't hurt.]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[Synthetic Multi-Defect Sample Generation]
+
+    #text(size: 14pt, weight: "bold", fill: muted)[Why:]
+    #item[WM-811K *only has single-defect labels*. Real wafers can have co-occurring defects from simultaneous process problems.]
+    #item[Method: element-wise *maximum blending*]
+    #item[No additional human annotation required]
+    #v(0.3em)
+    #text(size: 14pt, weight: "bold", fill: muted)[Trade-off:]
+    #item[Element-wise max is a simplification]
+    #item[Hardest cases: *Donut + Near-full* (both cluster at wafer edge → merged activation blobs)]
+    //#text(fill: muted, size: 13pt)[Works best when defect patterns are spatially non-overlapping]
+  ],
+)
+
+#slide-num(10)
+#pagebreak()
+
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 11 — Design Decision 4: Three-Phase Training     ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[Design Decision 4: Three-Phase Training Curriculum]
+
+#grid(
+  columns: (1fr, 1fr, 1fr),
+  column-gutter: 12pt,
+
+  card[
+    #text(fill: accent, weight: "bold")[1. Train Segmentation Model Alone]
+    #v(0.1em)
+    #item[100 epochs, 64 steps/epoch, batch size 16]
+    #item[Loss: 0.140 → *≈ 0.017*]
+    #item[Sharp drop first 5 epochs → slow decline]
+    #item[Smooth convergence]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[2. Freeze Seg, Pre-Train Classifier Head]
+    #v(0.1em)
+    #item[~32 epochs - segmentation frozen]
+    #item[AUC: 0.65 → 0.86]
+    #item[Loss: 0.82 → ~0.30]
+    #item[Refined 20-epoch run: train AUC 0.93, *val AUC 0.94* at best epoch 19]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[3. End-to-End Fine-Tuning]
+    #v(0.1em)
+    #item[50 epochs · batch size 64 · both models unfrozen]
+    #item[Train AUC: 0.91 → ~0.95]
+    #item[*Val AUC peaks above 0.96* · best epoch 40]
+    #item[Train loss: 0.27 → ~0.20]
+    #item[Validation more volatile]
+  ],
+)
+
+#card[
+  #text(fill: accent2, weight: "bold")[Why curriculum training?] #h(4pt)
+  #text(size: 14pt)[End-to-end from scratch: classifier received random-noise segmentation outputs → erratic gradient flow. Training each stage to convergence before connecting reduces gradient interference. Broadly applicable pattern for any multi-stage deep learning pipeline.]
+]
+
+#slide-num(11)
+#pagebreak()
+
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 12 — AI Role & System Autonomy                  ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[AI Role and System Autonomy]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 16pt,
+
+  card[
+    #text(fill: accent, weight: "bold")[The AI's Two Roles]
+    #v(0.2em)
+    #text(size: 14pt, weight: "bold")[Segmentation model = Analyst]
+    #item[From raw wafer map → 8 spatial overlay maps]
+    #item[Translates greyscale image into *where each defect type appears*]
+    #v(0.2em)
+    #text(size: 14pt, weight: "bold")[Classification model = Interpreter]
+    #item[Reads spatial maps → outputs *calibrated probabilities* per class]
+    #item[Converts spatial evidence into 8 sigmoid confidence scores]
+    #v(0.2em)
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[Level of Automation]
+    #v(0.4em)
+    #item[Preprocessing, segmentation, classification: fully automatic]
+    #v(0.4em)
+    #text(fill: bad, weight: "bold", size: 14pt)[System does NOT:]
+    #item[Flag a wafer for scrap]
+    #item[Raise a process alarm]
+    #item[Notify a supervisor]
+    #item[Update any external database]
+    #v(0.3em)
+    #text(fill: good, size: 13pt)[*Draw mode* turns the system into an active exploration tool]
+  ],
+)
+
+#slide-num(12)
+#pagebreak()
+
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 13 — Evaluation Setup                           ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[Evaluation Setup and Results: Training Phases]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 16pt,
+
+  card[
+    #text(fill: accent, weight: "bold")[Evaluation Goals]
+    
+    #item[Did segmentation model learn to *localise defect regions* (or just produce plausible noise)?]
+    #item[Did classification model reach a *practically useful AUC*?]
+    #item[Does two-stage pipeline produce *better/more interpretable* results than direct classifier?]
+    #v(0.4em)
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[Phase 2 Extended — 50 Epochs]
+    
+    #item[Training AUC: 0.91 → 0.96 by epoch 50]
+    #item[Validation AUC: volatile 0.92–*0.98*, best at epoch 47 (ModelCheckpoint saved)]
+    #item[Volatility: segmentation backbone gets gradient updates → feature space shifting under classifier]
+    #item[Train loss: 0.27 → ~0.175, Val loss minimum ~0.15]
+  ],
+)
+
+#v(0.5em)
+#grid(
+  columns: (1fr, 1fr, 1fr),
+  column-gutter: 12pt,
+
+  card[
+    #text(fill: accent, weight: "bold", size: 14pt)[Seg. Model Convergence]
+    #v(0.3em)
+    #text(size: 14pt)[MSE loss 0.140 → *0.017* over 100 epochs]
+    #v(0.2em)
+    //#text(size: 13pt, fill: muted)[After training: Center activates centre; Edge-Ring shows circular ring; Scratch traces linear streak; irrelevant channels stay near zero]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold", size: 14pt)[Phase 2 Best Checkpoint]
+    #v(0.3em)
+    #text(size: 14pt)[Val AUC *0.94* at epoch 19/20]
+    #v(0.2em)
+    //#text(size: 13pt, fill: muted)[Training and validation loss both converge near 0.23 with no meaningful gap — no overfitting]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold", size: 14pt)[Phase 3 Best Checkpoint]
+    #v(0.3em)
+    #text(size: 14pt)[Val AUC *above 0.96*, best epoch 40/50]
+    #v(0.2em)
+    //#text(size: 13pt, fill: muted)[Fullstack fine-tuning (10 epochs): AUC 0.61 → 0.70; Loss 0.60 → 0.45 with brief plateau at epoch 6]
+  ],
+)
+
+#slide-num(13)
+#pagebreak()
+
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 14 — Segmentation Visual Output                 ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[Segmentation Model: Visual Output Before vs. After Training]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 16pt,
+
+  card[
+    #text(fill: bad, weight: "bold")[Before Training (epoch 0)]
+    #v(0.4em)
+    #item[Model outputs *undifferentiated noise* across all 8 channels]
+    #item[No spatial preference whatsoever]
+    #item[All channels look identical — structureless activation blobs]
+    
+    //#text(fill: muted, size: 13pt)[Ground-truth per-class binary masks show the expected Centre / Edge-Ring / Scratch patterns clearly — but the model has no mapping yet]
+  ],
+
+  card[
+    #text(fill: good, weight: "bold")[After 100 Epochs of Training]
+    #v(0.4em)
+    #item[*Center* channel: strong activation near wafer middle]
+    #item[*Edge-Ring* channel: circular activation at wafer periphery]
+    #item[*Scratch* channel: elevated activation along linear failure streak]
+    #item[*Unrelated channels* (e.g., Center, Loc, Near-full for an Edge-Ring wafer): stay near zero]
+    //#v(0.3em)
+    //#text(fill: muted, size: 13pt)[Some activation bleed into adjacent channels — not perfectly sharp — but primary spatial structures correctly and clearly localised. Matches ground-truth masks well.]
+  ],
+)
+
+#v(0.5em)
+//#card[
+  //#text(fill: muted, size: 14pt)[*Test wafer example (Figure 9):* Input contains Edge-Ring + Scratch overlay. Edge-Ring channel: strong circular activation at periphery ✓. Scratch channel: elevated activation along linear streak ✓. Center/Loc/Near-full channels: correctly suppressed ✓.]]
+
+#slide-num(14)
+#pagebreak()
+
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 15 — Model Comparison Results                   ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[Model Comparison: 4 Architectures on 160 Test Images]
 
 #align(center)[
   #table(
@@ -511,19 +761,19 @@
     },
 
     text(fill: accent, weight: "bold")[Class],
-    text(fill: accent, weight: "bold")[Best CNN],
-    text(fill: accent, weight: "bold")[+ Aug],
+    text(fill: accent, weight: "bold")[Best CNN\n(no aug)],
+    text(fill: accent, weight: "bold")[Best CNN\n(+ aug)],
     text(fill: accent, weight: "bold")[Fullstack],
-    text(fill: accent, weight: "bold")[Seg→CLF],
+    text(fill: accent, weight: "bold")[Seg → CLF],
 
-    [Center],    text(fill: bad)[0%],  text(fill: bad)[0%],  [—], [—],
-    [Donut],     text(fill: good)[65%], text(fill: bad)[10%], [—], [—],
-    [Edge-Loc],  [30%],  text(fill: good)[85%], [—], [—],
-    [Edge-Ring], text(fill: bad)[0%],  text(fill: bad)[0%],  [—], [—],
-    [Loc],       text(fill: bad)[0%],  text(fill: bad)[0%],  [—], [—],
-    [Near-full], [5%],   [15%],  [—], [—],
-    [Random],    [5%],   text(fill: bad)[0%],   [—], [—],
-    [Scratch],   text(fill: bad)[0%],  text(fill: bad)[0%],  [—], [—],
+    [Center],    text(fill: bad)[0%],  text(fill: bad)[0%],  text(fill: bad)[0%], text(fill: good)[95%],
+    [Donut],     text(fill: good)[65%], text(fill: bad)[10%], text(fill: bad)[0%], text(fill: bad)[0%],
+    [Edge-Loc],  [30%],  text(fill: good)[85%], [—], text(fill: bad)[0%],
+    [Edge-Ring], text(fill: bad)[0%],  text(fill: bad)[0%],  text(fill: bad)[0%], text(fill: bad)[0%],
+    [Loc],       text(fill: bad)[0%],  text(fill: bad)[0%],  text(fill: bad)[0%], text(fill: bad)[0%],
+    [Near-full], [5%],   [15%],  text(fill: good)[100%], text(fill: bad)[0%],
+    [Random],    [5%],   text(fill: bad)[0%],   [35%], text(fill: bad)[0%],
+    [Scratch],   text(fill: bad)[0%],  text(fill: bad)[0%],  text(fill: bad)[0%], text(fill: bad)[0%],
 
     text(weight: "bold")[Overall],
     text(fill: accent2, weight: "bold")[13.1%],
@@ -534,178 +784,229 @@
 ]
 
 #v(0.3em)
-#text(size: 14pt, fill: muted)[All models cluster *near random chance (12.5%)* on the balanced test set. High training accuracy does not generalise to rare classes (Scratch: \<300 samples in full WM-811K).]
+#text(size: 13pt, fill: muted)[*Random chance on 8-class balanced test = 12.5%.* All models near random on most classes. Test images: 20 samples per class × 8 classes = 160 PNG images from WM-811K via generate_images.py (fixed seed, {0,1,2} → {0,128,255} pixel scaling for visualisation only).]
 
-#slide-num(10)
+#slide-num(15)
 #pagebreak()
 
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 11 — Critical Failure Cases                      ║
+// ║  SLIDE 16 — Failure Cases                              ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[Critical Failure Cases]
+#slide-title[Critical Failure Cases and Unexpected Outcomes]
 
 #grid(
   columns: (1fr, 1fr),
   column-gutter: 16pt,
 
   card[
-    #text(fill: bad, weight: "bold")[Failure 1: Center / Near-full Confusion]
-    #item[Best CNN assigns Near-full confidence *0.90–0.98* to Center inputs]
-    #item[*18 out of 20* Center images predicted as Near-full]
-    #hrule
-    #text(fill: accent2, weight: "bold")[Operational consequence:]
-    #v(0.2em)
-    #text(size: 14pt)[
-      Center → routine CVD calibration drift\
-      Near-full → *catastrophic failure, immediate lot quarantine*\
-      A top-1-only UI would trigger a drastic response for a routine issue *90% of the time.*
-    ]
+    #text(fill: bad, weight: "bold")[Per-class accuracy collapse (all models)]
+    #item[Every architecture collapses to high accuracy on 1–2 dominant classes while failing on the rest]
+    #item[Sign of class imbalance + class-specific shortcuts rather than general spatial representations]
+    #item[No single architecture achieved balanced performance across all 8 classes]
   ],
 
   card[
-    #text(fill: bad, weight: "bold")[Failure 2: Augmentation Destroys Donut]
-    #v(0.4em)
-    #item[Adding rotation/flip: Donut drops *65% → 10%*]
-    #item[Edge-Loc jumps *30% → 85%* in the same run]
-    #v(0.4em)
-    #hrule
-    #text(fill: muted, size: 14pt)[Rotation teaches the model a *partial ring is a valid Donut* — conflicting with the class definition.]
-    #v(0.6em)
-    #text(fill: bad, weight: "bold")[Failure 3: Seg → CLF Collapse]
-    #v(0.3em)
-    #text(size: 14pt)[Pipeline predicts "Center" confidence 1.0 for *>90% of all inputs* regardless of true class — classification head overfit to dominant training class, ignoring segmentation features.]
-  ],
+    #text(fill: bad, weight: "bold")[Spatial ambiguity on overlapping synthetic defects]
+    #item[Donut + Near-full: both cluster near wafer edge → segmentation model produced *merged activation blobs*]
+    #item[Recognised that something was happening at the edge, but not *which* specific pattern]
+    #item[Known limitation — would require real labelled multi-defect data to address properly]
+  ]
 )
 
-#slide-num(11)
+#slide-num(16)
 #pagebreak()
 
-
-// ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 12 — Safeguards in the UI                        ║
-// ╚══════════════════════════════════════════════════════════╝
-#slide-title[How WaferDX Handles Model Uncertainty]
+#slide-title[Critical Failure Cases and Unexpected Outcomes]
 
 #grid(
-  columns: (1fr, 1fr, 1fr),
-  column-gutter: 12pt,
+  columns: (1fr, 1fr),
+  column-gutter: 16pt,
 
   card[
-    #align(center)[#text(size: 26pt)[📊]]
-    #align(center)[#text(fill: accent, weight: "bold")[Full Distribution]]
-    #v(0.4em)
-    #text(size: 14pt)[Always shows *all 8 class probabilities* as a ranked bar chart — not just top-1 label + confidence]
-    #v(0.3em)
-    #text(size: 13pt, fill: muted)[Engineer sees: "Donut 57%, Edge-Loc 38%" and can judge calibration before acting]
+    #text(fill: bad, weight: "bold")[Draw mode distribution shift]
+    #item[Drawn strokes are *sharper and higher-contrast* than real wafer map greyscale gradients]
+    #item[Direct classifier sometimes less confident on drawn inputs than uploaded ones]
+    #item[Creates distribution mismatch between draw mode and training data]
   ],
 
   card[
-    #align(center)[#text(size: 26pt)[🔥]]
-    #align(center)[#text(fill: accent, weight: "bold")[Grad-CAM Heatmap]]
-    #v(0.4em)
-    #text(size: 14pt)[Overlaid on input image — engineer can verify whether the model is *attending to the actual defect region* or to wafer-edge artifacts]
-    #v(0.3em)
-    #text(size: 13pt, fill: muted)[Visual sanity check before initiating any tool inspection]
-  ],
-
-  card[
-    #align(center)[#text(size: 26pt)[⚖️]]
-    #align(center)[#text(fill: accent, weight: "bold")[Dual Hypothesis]]
-    #v(0.4em)
-    #text(size: 14pt)[Auto-triggered when *confidence gap < 0.15* — displays both process hypotheses side-by-side with confidence scores]
-    #v(0.3em)
-    #text(size: 13pt, fill: muted)["This map is ambiguous between Edge-Ring and Donut — here is what each implies for your process"]
+    #text(fill: bad, weight: "bold")[Early Phase 3 instability + sparse labels]
+    #item[Validation loss spiked in first 2–3 fine-tuning epochs before settling — differential learning rates not implemented (time constraint)]
+    #item[Only ~12,800 of 811,000 maps labelled — thin supervision signal likely causing gaps for rare morphologies]
+    #item[Seg → CLF pipeline: classifier overfit to "Center" class (confidence 1.0 for over 90% of all inputs regardless of true class)]
   ],
 )
 
-#v(0.8em)
+#slide-num(17)
+#pagebreak()
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 17 — What Evaluation Cannot Tell Us             ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[What the Evaluation Cannot Tell Us]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 16pt,
+
+  card[
+    #text(fill: accent2, weight: "bold")[Multi-label evaluation is entirely qualitative]
+    #v(0.4em)
+    #item[No held-out test set with genuine multi-label ground truth — WM-811K *does not provide one*]
+    #item[Multi-defect evaluation = looking at outputs and judging if they "looked right"]
+    #item[Useful but not rigorous]
+    
+    //#text(fill: muted, size: 13pt)[Proper evaluation against real multi-defect wafer maps labelled by process engineers = *next necessary step before production use*]
+  ],
+
+  card[
+    #text(fill: accent2, weight: "bold")[No real-world fab validation]
+    #v(0.4em)
+    #item[WM-811K comes from one fab environment with its own process conditions, tool fleet, wafer sizes]
+    #item[Model may not generalise to a different fab without recalibration]
+    #item[Production deployment requires *periodic retraining* on locally collected labelled data]
+    
+    //#text(fill: muted, size: 13pt)[Synthetic multi-defect training data *not validated* against real co-occurring defects — multi-label behaviour is promising but unconfirmed]
+  ],
+)
+
+#v(0.5em)
 #card[
-  #text(fill: muted, size: 14pt)[All RCA outputs are labelled as #text(fill: accent2, weight: "bold")["pattern hypothesis"] throughout the UI — not "diagnosis" or "root cause". *The engineer decides what to do next.*]
+  #text(fill: accent, weight: "bold")[Deployment risk: automation complacency] #v(0.2em)
+  #text(size: 14pt)[When system shows 94% confidence for Edge-Ring, real risk that engineer accepts it *without checking spatial maps* — opposite of intended behaviour. Interface shows all 8 class probabilities simultaneously to make uncertainty visible and encourage critical engagement.]
 ]
 
-#slide-num(12)
+#slide-num(17)
 #pagebreak()
 
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 13 — Transferable Insights & Limitations         ║
+// ║  SLIDE 18 — Transferable Design Insights               ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[Transferable Insights & Governance Risks]
+#slide-title[Transferable Design Insights]
 
 #grid(
   columns: (1fr, 1fr),
   column-gutter: 16pt,
 
   card[
-    #text(fill: good, weight: "bold")[Transferable design principles]
+    #text(fill: good, weight: "bold")[Generalizable Principles]
     #v(0.4em)
-    #item[*Augmentation must respect class geometry* — applies to satellite imaging, histopathology, PCB inspection, any spatially structured classification]
-    #item[*Calibration > accuracy for decision support* — high confidence + wrong answer is the most dangerous failure mode; temperature/isotonic scaling should be mandatory]
-    #item[*Separate classification from domain reasoning* — RCA lookup table updated without model retraining; modularity scales to new failure modes]
+    #item[*Spatial decomposition as explainability:* Localisation-then-classification = intermediate spatial maps ARE the explanations. Equally useful in medical imaging, PCB inspection]
+    #item[*Synthetic multi-label composition:* Element-wise max compositing works wherever single-label data exists and co-occurrence is physically plausible.]
+    #item[*Curriculum training for multi-stage pipelines:* Train each stage to convergence before connecting. Broadly applicable for any pipeline where one model feeds another]
   ],
 
   card[
-    #text(fill: bad, weight: "bold")[Governance risks]
+    #text(fill: accent2, weight: "bold")[Specific to WM-811K Setting]
     #v(0.4em)
-    #item[*Calibration failure* — Center/Near-full case shows the confidence-gap warning does not protect against overconfident wrong predictions; per-class calibration on held-out set required]
-    #item[*Over-reliance on RCA* — knowledge-based mappings are heuristics, not verified causal chains; cross-check with tool logs mandatory before action]
-    #item[*Scope drift* — mappings only valid for standard bulk CMOS FEOL; III-V, MEMS, advanced packaging require different tables]
+    #item[8-class defect taxonomy is *dataset-specific*]
+    #item[Three-valued pixel encoding {0, 1, 2} specific to *probe test output format*]
+    #item[96×96 target resolution = balance for this dataset; different datasets may need different resolution]
+    #item[Element-wise max compositing assumes *spatially non-overlapping defects* — holds for WM-811K but may not elsewhere]
+    #v(0.5em)
+    #text(fill: bad, weight: "bold", size: 13pt)[Distribution shift risk:]
+    #text(size: 13pt)[ Fab-specific training data. Model trained on one fab may not generalise to another.]
   ],
 )
 
-#slide-num(13)
+#slide-num(18)
 #pagebreak()
 
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 14 — Future Work & Closing                       ║
+// ║  SLIDE 19 — Future Extensions                          ║
 // ╚══════════════════════════════════════════════════════════╝
 #slide-title[Future Extensions]
 
 #grid(
-  columns: (1fr, 1fr, 1fr),
-  column-gutter: 12pt,
+  columns: (1fr, 1fr),
+  column-gutter: 16pt,
+  row-gutter: 10pt,
 
   card[
-    #text(fill: accent, weight: "bold")[Per-class calibration]
+    #text(fill: accent, weight: "bold")[Higher Resolution Inputs]
     #v(0.3em)
-    #text(size: 14pt)[~500 samples/class calibration set from WM-811K + isotonic regression → fix Center/Near-full overconfidence so threshold warnings fire correctly]
+    #item[Move from 64×64 to *128×128 or 256×256*]
+    #item[Especially important for *Scratch* defects — often only a few pixels wide at current resolution]
+    #item[Better spatial detail: Edge-Loc vs. Edge-Ring]
   ],
 
   card[
-    #text(fill: accent, weight: "bold")[Multi-defect maps]
+    #text(fill: accent, weight: "bold")[Calibrated Uncertainty]
     #v(0.3em)
-    #text(size: 14pt)[Synthetic multi-label maps via logical union of single-class samples → multi-label loss (binary cross-entropy per class) + per-class F1 evaluation]
+    #item[Add *Monte Carlo Dropout* or *conformal prediction*]
+    #item[Give system a principled way to say "I am not sure about this one"]
   ],
 
   card[
-    #text(fill: accent, weight: "bold")[Learned RCA]
+    #text(fill: accent, weight: "bold")[Real Multi-Label Annotations]
     #v(0.3em)
-    #text(size: 14pt)[Integrate proprietary fab process logs (tool IDs, chamber sensors, run timestamps) to partially replace heuristic mappings with empirically validated causal associations]
+    #item[*Most important single improvement*: multi-defect wafer maps labelled by process engineers]
+    #item[Enable rigorous multi-class F1 evaluation]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[Integration with Fab Systems]
+    #v(0.3em)
+    #item[Connect to *manufacturing execution system*]
+    #item[Raise *SPC alerts* directly when high-confidence defect calls are made]
+    #item[Cenncts diagnosis and process control]
   ],
 )
 
-#v(0.4em)
-#align(center)[
+
+#slide-num(19)
+#pagebreak()
+
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 20 — Conclusion                                  ║
+// ╚══════════════════════════════════════════════════════════╝
+#align(center + horizon)[
+  #v(1em)
+  #text(size: 22pt, weight: "bold", fill: accent)[Conclusion]
+  #hrule
+
+  #grid(
+    columns: (1fr, 1fr),
+    column-gutter: 14pt,
+
+    card[
+      #text(fill: accent, weight: "bold")[System]
+      #v(0.3em)
+      #text(size: 14pt)[5.68 M parameters, Two-stage U-Net + CNN + Spatial Attention, Streamlit UI with Upload + Draw modes]
+    ],
+
+    card[
+      #text(fill: accent, weight: "bold")[Performance]
+      #v(0.3em)
+      #text(size: 14pt)[MSE loss ≈ 0.017 · Val AUC peaks *0.98* at epoch 47 · Fullstack: 17.5% test accuracy (best of 4)]
+    ],
+  )
+
+  #v(1.0em)
   #rect(
-    width: 75%,
-    inset: 14pt,
+    width: 80%,
+    inset: 12pt,
     radius: 6pt,
     fill: surface,
     stroke: 2pt + accent,
   )[
-    #text(size: 16pt, weight: "bold", fill: accent)[Core Contribution]
-    #v(0.4em)
-    #text(size: 14pt)[
-      WaferDX shows that explainable decision support requires *more than appending Grad-CAM to a CNN*. \
-      Transparency about model limitations — full distributions, spatial attribution, explicit dual-hypothesis display — \
-      is itself a design feature, not a fallback for low accuracy.
+    #text(size: 15pt)[
+      We wanted a tool telling engineers not just *what* is wrong with a wafer, but *where*\
+      The system is designed to support critical engagement, not discourage it.
     ]
   ]
+
+  #v(0.2cm)
+  #hrule
+  #text(size: 13pt, fill: muted)[
+    Abhirup Sain · David Spickenheuer · Martin Werner · Matti Lehmann · Staniya Thomas \
+    NTU · Data Analysis and Machine Learning with Python · June 2026
+  ]
+  #v(0.3em)
+  #text(size: 11pt, fill: muted)[References: LeCun et al. 2015 · Ronneberger et al. 2015 (U-Net) · Woo et al. 2018 (CBAM) · Wu et al. 2015 · Nakazawa & Kulkarni 2018 · Selvaraju et al. 2017 (Grad-CAM) · Molnar 2022]
 ]
 
-#v(0.2em)
-#align(center)[#text(size: 14pt, fill: muted)[Thank you — questions welcome]]
-
-#slide-num(14)
+#slide-num(20)
