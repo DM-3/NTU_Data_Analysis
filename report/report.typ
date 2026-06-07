@@ -14,7 +14,25 @@
 )
 #set par(justify: true, leading: 0.65em)
 
-// --- PAGE 1 ---
+#show heading.where(level: 2): it => {
+  v(1em)
+  it
+  v(1em, weak: true)
+}
+#show heading.where(level: 1): it => {
+  pagebreak(weak: true)
+  set text(size: 18pt)
+  set par(justify: false)
+  it
+  line(length: 100%, stroke: 0.5pt)
+  v(1em)
+}
+
+
+
+
+// ---- Cover Page ----
+
 #align(center)[
   #v(3cm)
   #text(22pt, weight: "bold")[Explainable Artificial Intelligence-Based Wafer Map Defect Diagnosis and Decision Support System]
@@ -40,9 +58,11 @@
   )
 ]
 
-#pagebreak()
 
-// --- PAGE 2 ---
+
+
+// ---- Abstract ----
+
 = Abstract
 
 Every electronic device you own whether a smartphone or a car's control unit depends on microchips. Those chips are made in bulk on thin circular discs of silicon called wafers, where hundreds of identical chips are etched side by side. Before a wafer leaves the factory, every single chip is electrically tested, and the results are recorded as a color-coded grid image: green for a chip that passed, red for one that failed. Engineers call these images wafer maps, and the patterns of failures they reveal are like fingerprints. A ring of failures around the edge points to one kind of manufacturing problem, a streak across the middle points to another, a scattered cluster of failures points to something else entirely. Identifying the right pattern quickly is critical, because the answer determines whether a whole production batch gets scrapped, whether a piece of equipment gets pulled offline for maintenance, or whether everything just keeps running. Getting it wrong wastes millions worth of materials and machine time; getting it slowly is nearly as costly.
@@ -53,14 +73,24 @@ A few design choices shaped the system in ways worth flagging upfront. We chose 
 
 Training went through three phases: segmentation model training alone (converging to MSE loss near 0.017 after 100 epochs), classification head pre-training with the segmentation model frozen (reaching AUC 0.93 to 0.94 at best epoch 19 of 20), and end-to-end fine-tuning of the full pipeline (reaching AUC above 0.96 at best epoch 40 of 50). The segmentation output visually confirms that the model has learned meaningful spatial structure in which defect-specific regions light up correctly while unrelated channels stay dark.
 
+
+
+
+// ---- Table of Contents ----
+
+#outline()
+#set heading(numbering: "1.")
+
+
+
+
+// ---- Content ----
+
 = Dataset
 
 == WM-811K: Where the Data Comes From
 The WM-811K dataset is the empirical foundation of this project. It contains 811,457 real wafer maps collected from semiconductor fabrication lines, each stored as a 2D array of integers with pixel values in the set {0, 1, 2}: 0 for background (outside the circular wafer boundary), 1 for a passing die, and 2 for a failing die.
 
-#pagebreak()
-
-// --- PAGE 3 ---
 The dataset covers eight named defect classes namely Center, Donut, Edge-Loc, Edge-Ring, Loc, Random, Scratch, and Near-full plus a None class for defect-free wafers.
 
 Two characteristics of the raw dataset make it genuinely challenging to work with. First, the wafer maps come in many different sizes and aspect ratios, because they were captured from different tools and fabs over time, a map from one tool might be $14 times 14$ pixels while another might be $200 times 190$. Any model that takes fixed-size input needs to handle this variability consistently. Second, and more strikingly, the vast majority of the dataset has no label at all. Of the 811,457 wafer maps, only 12,822 carry a defect class annotation less than 1.6% of the total. All supervised training in this project was performed on the labelled subset only.
@@ -78,11 +108,10 @@ All dataset logic is centralized in a single Python class, `WM_811K`, which acts
 
 The class exposes three TensorFlow dataset pipelines: `dataset_single_defect()` for training on individual defect classes, `dataset_multi_defect_segmentation()` for training the segmentation model with per-class binary mask targets, and `dataset_multi_defect_fullstack()` for the end-to-end fine-tuning phase. Each pipeline handles batching, shuffling, and augmentation internally.
 
-= I. Application Context and Decision Problem
 
-#pagebreak()
 
-// --- PAGE 4 ---
+= Application Context and Decision Problem
+
 == System Application Scenarios
 At the end of the wafer probe test step, every die on a wafer is electrically tested and the result (pass or fail) is stored as a pixel in a 2D binary image. The pixel values follow a simple convention: 0 for background (outside the wafer boundary), 1 for a passing die, and 2 for a failing die. When a batch of wafers is complete, these maps get reviewed to work out what went wrong and where. The WM-811K dataset catalogues eight distinct defect patterns that process engineers commonly encounter—Center, Donut, Edge-Loc, Edge-Ring, Loc, Random, Scratch, and Near-full—alongside a None class for wafers where everything looks clean. Out of the full 811,457 wafer maps in the dataset, only 12,822 actually carry a defect label, which says something about how sparse real annotation effort tends to be in practice.
 
@@ -100,10 +129,9 @@ Most automated defect classification tools in production today apply a single-la
 == Specific Decisions Supported by the System
 At its core the system is trying to answer two questions an engineer would naturally ask. First: which defect type or types are present, and with how much confidence? That is answered by the sigmoid probability scores from the classification head, one per defect class. Second: where on the wafer is each defect showing up? That is answered by the eight spatial activation maps produced by the segmentation model, each one highlighting the regions most associated with a particular defect pattern. Together, those two outputs give an engineer something much closer to the explanation they actually need.
 
-#pagebreak()
 
-// --- PAGE 5 ---
-= II. Related Design Approaches
+
+= Related Design Approaches
 
 == Design of Related Systems
 Previous attempts have fallen into one of three camps. The oldest approach is rule-based template matching, where wafer maps are compared against a library of hand-crafted spatial templates. It is transparent and fast, but it falls apart the moment a defect looks slightly different from what is in the template library, and it has no concept of multiple defects appearing together.
@@ -121,15 +149,14 @@ The third camp applies deep CNNs directly to the raw 2D wafer map. These reach i
 == Differences From Prior Approaches
 What we have tried to build here is different in a few meaningful ways. The per-class spatial activation maps are a primary output, they come directly from the segmentation model's decoder rather than being approximated post-hoc. The multi-label capability is baked in from the training data design rather than being an architectural add-on. And the whole thing is wrapped in an interface that lets engineers engage with it interactively, which changes how you use a tool like this in practice.
 
-= III. Artifact Overview
+
+
+= Artifact Overview
 
 == Overall System Functions
 The system is built from four pieces that fit together into a coherent pipeline.
 - *WM_811K Dataset Module:* This is the data foundation. It loads the raw wafer map data from the pkl files, exposes three TensorFlow dataset pipelines (single-defect, multi-defect segmentation, and multi-defect full stack), and acts as the single source of truth for image dimensions, label-to-integer mappings, and augmentation logic. Having everything defined in one place meant that when we changed the image size during development, nothing broke downstream.
 
-#pagebreak()
-
-// --- PAGE 6 ---
 - *Segmentation Model (U-Net-inspired, ~3.21 M parameters):* The encoder passes the input through four convolutional blocks at filter depths 32, 64, 128, and 256, with Max Pooling to progressively reduce spatial dimensions. The bottleneck uses Global Average Pooling followed by two Dense layers, then reshapes and up-samples back before feeding into the decoder. Skip connections from the encoder let the decoder recover spatial detail that would otherwise be lost in the bottleneck. The output is an 8-channel map at $96 times 96$ resolution, one channel per defect class.
 - *Classification Model (CNN + Spatial Attention, ~2.11 M parameters):* This model takes the 8-channel segmentation output as its input. Each of its four convolutional blocks is immediately followed by a custom Spatial Attention layer that computes a spatial mask from average- and max-pooled channel features and uses a $7 times 7$ convolution to decide where on the feature map to focus. After Global Average Pooling and two Dense (512) layers with Batch Norm and Dropout, it outputs 8 sigmoid probabilities, one per defect class.
 - *Streamlit User Interface (app_best_wafer_cnn.py):* The front end is a polished Streamlit web application that loads the trained best CNN model (`best_wafer_cnn.keras`) and offers two input modes. In Upload mode, engineers drag in a wafer map image; in Draw mode, they sketch directly on a freehand canvas. Either way, the image gets preprocessed and passed through the model, and the results come back as a 3x3 grid of confidence cards each showing the defect name, a percentage, and a colour-coded progress bar. A second interface (`app_direct_classifier_cnn.py`) provides the same experience wired to the direct CNN classifier, serving as the comparison baseline in the UI evaluation.
@@ -143,16 +170,15 @@ The system works with 2D wafer map images (PNG, JPG, or JPEG) and freehand canva
 3. *Inference:* The preprocessed image goes through the segmentation model, producing eight spatial activation maps. Those maps are then passed to the classification model, which outputs a confidence score for each defect class.
 4. *Results:* The confidence cards appear in a $3 times 3$ grid. Bars are highlighted in cyan/blue when confidence is above 70%, grey when it is below 30%, with a gradient in between.
 
-= IV. Design Decisions and Trade-offs
+
+
+= Design Decisions and Trade-offs
 
 == Decision 1: Two-Stage Segmentation + Classification vs. Direct End-to-End Classification
 - *Why:* Provides clear visual interpretability (e.g., lighting up the wafer periphery for an Edge-Ring), unlike the simpler end-to-end model which is difficult to debug when it misclassifies. We also built `app_best_wafer_cnn.py`, a standalone Streamlit interface wired to the best CNN model directly, for comparison. While it is simpler to train and deploy, it is hard to understand why when something goes off.
 - *Trade-off:* The two-stage approach means more work upfront. The segmentation model has to be trained to a reasonable level before the classifier pre-training even starts. The pipeline is also more complex to debug when both components are unfrozen during fine-tuning.
 - *Best for:* This design makes the most sense when spatial interpretability matters which, for process fault diagnosis, it almost always does. For a simpler task where you just need a fast binary answer and do not care about the spatial explanation, the direct classifier would be the better choice.
 
-#pagebreak()
-
-// --- PAGE 7 ---
 == Decision 2: Spatial Attention in Every Convolutional Block
 - *Why:* Wafer defects are often tiny relative to the full wafer area. A scratch defect might cover less than 5% of the image. If the network treats every spatial location equally, it wastes a lot of capacity modelling background. The Spatial Attention layer inspired by the CBAM paper generates a soft mask by pooling feature maps across channels and running a $7 times 7$ convolution, then multiplies that mask back onto the feature maps. In practice this steered the network toward the regions that actually matter.
 - *Trade-off:* Channel attention (SE-Net style) was an alternative, which lacks the geometric and geographical focus needed for spatial defect tracking.
@@ -163,15 +189,14 @@ The system works with 2D wafer map images (PNG, JPG, or JPEG) and freehand canva
 - *Trade-off:* Element-wise maximum blending is a simplification. Real co-occurring defects may interact spatially in ways our synthetic composites do not capture. For example, a scratch that cuts across a pre-existing edge ring region. This is a known limitation and something we would address with real labelled multi-defect data if it were available.
 - *Best for:* This approach works well when defect patterns are spatially non-overlapping or only marginally overlapping. Heavily overlapping defects (like Donut and Near-full, which both cluster near the wafer edge) are the hardest cases for the synthetic approach.
 
-#pagebreak()
-
-// --- PAGE 8 ---
 == Decision 4: Three-Phase Training Curriculum
 - *Why:* Early in the project we tried training the whole pipeline end-to-end from scratch. The classification head was receiving segmentation outputs that were essentially random noise in the first few epochs, which made gradient flow erratic and slowed everything down. Breaking training into three phases—(1) train the segmentation model alone, (2) freeze it and pre-train the classification head, (3) unfreeze everything for joint fine-tuning—let each component get its bearings before being asked to work with the other. The results were noticeably cleaner.
 - *Trade-off:* Phase-by-phase training is more involved. You have to monitor three separate training runs, pick checkpoints at phase transitions, and be careful about learning rate settings when you unfreeze the backbone. We used Model Checkpoint and Early Stopping callbacks throughout (patience 10-15 depending on the phase), which helped manage this, but it still required more hands-on attention than a single training loop would.
 - *Best for:* Curriculum training is most useful when one component's output is another component's input and the upstream model needs time to stabilize before the downstream model can learn anything meaningful. It is a broadly applicable pattern for any multi-stage deep learning pipeline.
 
-= V. AI Role and System Autonomy
+
+
+= AI Role and System Autonomy
 
 == The Role of AI in the System
 The segmentation model acts as an analyst: it looks at a raw wafer map and produces a spatial breakdown of where each defect type appears, effectively translating a single greyscale image into eight overlay maps that highlight what is going on where. The classification model then acts as an interpreter: it reads those spatial maps and converts them into calibrated probabilities for each defect class. Neither model makes a decision but they produce information that supports a decision.
@@ -184,10 +209,9 @@ This was a deliberate choice and not a technical limitation. Automating the resp
 == How Users Interact with and Oversee AI
 Before inference, Engineers control the inputs by uploading real wafer maps or sketching custom patterns, transforming the system into an active tool for exploratory testing. After inference, the engineer reviews the confidence card display and, if they want to dig deeper, can inspect the segmentation model's per-class activation maps to see which regions drove the high-confidence calls. Mismatches between high confidence and vague activation maps prompt healthy skepticism, encouraging critical human oversight.
 
-#pagebreak()
 
-// --- PAGE 9 ---
-= VI. Evaluation System, Logic and Evidence
+
+= Evaluation System, Logic and Evidence
 
 == Evaluation Goals and Methods
 We had three main questions going into the evaluation. Did the segmentation model actually learn to localize defect regions, or was it just producing plausible-looking noise? Did the classification model reach a level of AUC that would make it useful in practice? And does the two-stage pipeline produce meaningfully better or more interpretable results than the simpler direct classifier? We did not run a formal user study, so the evaluation is quantitative (training metrics) and qualitative (visual inspection of segmentation outputs).
@@ -201,20 +225,17 @@ For the segmentation model, we compared the predicted per-class activation maps 
 We trained the segmentation model for 100 epochs at 64 steps per epoch with a batch size of 16. The loss started at 0.140 in epoch 1 and dropped sharply over the first five epochs before settling into a long, gradual decline to about 0.017 by epoch 100. The curve is smooth enough to confirm stable convergence without early stopping triggering.
 
 #align(center)[
-  #image("segmentation_loss_curve.png", width: 85%)
+  #image("../plots/segmentation_loss_curve.png", width: 65%)
   #v(-0.5em)
   #text(9pt)[Figure 1. Segmentation model training loss over 100 epochs (MSE).]
 ]
 
 The sharp drop in the first few epochs reflects rapid learning of coarse spatial structure; the slow decline afterward reflects fine-grained refinement.
 
-#pagebreak()
-
-// --- PAGE 10 ---
 The visual comparison tells the more interesting story. Before training, the model outputs undifferentiated noise across all eight channels and it has no spatial preference. After 100 epochs, the per-class maps are clearly structured: the Center channel activates near the middle of the wafer, the Edge-Ring channel shows a circular ring around the periphery, the Scratch channel traces a linear streak, and channels corresponding to defect types not present in the sample stay near zero. That is exactly the behaviour we were aiming for.
 
 #align(center)[
-  #image("segmentation_sample_init.jpg", width: 95%)
+  #image("../plots/segmentation_sample_init.png", width: 95%)
   #v(-0.5em)
   #text(9pt)[Figure 2. Segmentation model output before any training. Top row: ground-truth per-class defect masks. Bottom row: model predictions structureless noise with no spatial coherence across any of the eight channels.]
 ]
@@ -222,7 +243,7 @@ The visual comparison tells the more interesting story. Before training, the mod
 #v(1cm)
 
 #align(center)[
-  #image("segmentation_sample_100epochs.jpg", width: 95%)
+  #image("../plots/segmentation_sample_100epochs.png", width: 95%)
   #v(-0.5em)
   #text(9pt)[Figure 3. Segmentation model output after 100 epochs. The model now correctly localizes Center, Edge-Ring, Scratch, and Donut regions in their respective channels while keeping unrelated channels suppressed. The spatial structure matches the ground-truth masks well.]
 ]
@@ -230,59 +251,19 @@ The visual comparison tells the more interesting story. Before training, the mod
 === Phase 2: Pre-Training the Classification Head
 With the segmentation model frozen, we pre-trained the classification head on its outputs. Figure 4 shows the AUC and loss curves over approximately 32 epochs. AUC climbs from 0.65 to 0.86, and binary cross-entropy loss falls sharply from 0.82 in the first five epochs down to around 0.35, then continues gradually toward 0.30. The clean monotonic loss curve confirms that the classification head is learning steadily without instability which is a good sign that the segmentation outputs it is consuming are consistently structured. The refined train/validation split curves are shown in Figure 5.
 
-#pagebreak()
-
-// --- PAGE 11 ---
 #align(center)[
-  #image("classification_pretrain_loss_curve (1).png", width: 80%)
+  #image("../plots/classification_pretrain_loss_curve.png", width: 80%)
   #v(-0.5em)
   #text(9pt)[Figure 4. Phase 2 classification head pre-training curves (segmentation model frozen, approximately 32 epochs). Top: AUC rises from 0.65 to 0.86. Bottom: binary cross-entropy loss falls from 0.82 to approximately 0.30, confirming stable learning from frozen segmentation outputs.]
-]
-
-=== Phase 2 Refined: Classification Head with Train/Validation Tracking
-Figure 5 shows the full Phase 2 training curves with both training and validation tracked. AUC climbs steadily from 0.81 to 0.93 on the training set, with validation closely following and reaching 0.94 at best epoch 19. The loss curves converge in parallel near 0.23, with no meaningful gap between training and validation, a reassuring sign that the head is learning generalizable patterns from the segmentation outputs rather than memorizing the training set.
-
-#align(center)[
-  #image("training_curves_attention_unet_stage1.png", width: 85%)
-  #v(-0.5em)
-  #text(9pt)[Figure 5. Phase 2 refined training curves (20 epochs, segmentation model frozen). Left: multi-label AUC — training reaches 0.93, validation 0.94 at best epoch 19. Right: binary cross-entropy loss — both training and validation converge near 0.23 with no overfitting.]
-]
-
-=== Phase 2 Extended: Observing Convergence Behavior Over 50 Epochs
-Before moving on to full fine-tuning, we ran the classification head for a longer 50-epoch window to observe how the model behaves when given more time with the segmentation backbone still frozen. Figure 6 shows the result. Training AUC starts around 0.91 and rises steadily to approximately 0.96 by epoch 50, while validation AUC is more volatile peaking above 0.98 at best epoch 47. Training loss falls from 0.27 toward 0.175, and validation loss trends down to a minimum near 0.15.
-
-#pagebreak()
-
-// --- PAGE 12 ---
-The higher validation volatility compared to the short 20-epoch run in Figure 5 is expected over a longer training window, but the overall downward trend confirms the classification head is continuing to improve without overfitting. Best epoch 47 was saved as the checkpoint carried into Phase 3.
-
-#align(center)[
-  #image("training_curves_attention_unet_stage2.png", width: 85%)
-  #v(-0.5em)
-  #text(9pt)[Figure 6. Phase 2 extended training curves over 50 epochs with the segmentation model still frozen (best epoch 47). Left: training AUC rises to 0.96 and validation AUC peaks near 0.98. Right: training loss falls to approximately 0.175 and validation loss reaches a minimum near 0.15, with higher variance due to stochastic mini-batch sampling.]
 ]
 
 === Phase 3: End-to-End Fine-Tuning
 For Phase 3 we unfrozen the entire pipeline and fine-tuned end-to-end, starting from the Phase 2 checkpoint. Training AUC rises from 0.91 to around 0.95 by the end of the run, with validation AUC tracking closely and peaking above 0.96. The best checkpoint was saved at epoch 40. Training loss falls steadily from 0.27 toward 0.20, and validation loss follows a similar downward trend. Compared to Phase 2 Extended in Figure 6, the validation curve here is notably smoother which reflects that the Phase 3 run used a larger batch size of 64, which averages out more gradient noise per update.
 
 #align(center)[
-  #image("training_curves (1).png", width: 85%)
+  #image("../plots/fullstack_loss_curve.png", width: 85%)
   #v(-0.5em)
   #text(9pt)[Figure 7. Phase 3 end-to-end fine-tuning curves with all layers unfrozen (best epoch 40). Left: training AUC rises to approximately 0.95 with validation peaking above 0.96. Right: training and validation loss both decline steadily toward 0.20, showing stable joint optimization.]
-]
-
-=== Full stack Model Fine-Tuning Loss Curve
-Figure 8 shows the AUC and loss curves specifically for the full stack model fine-tuning phase, plotted over 10 epochs to show the early convergence behavior in detail. AUC starts at 0.61 and rises to approximately 0.70 over the run. Loss begins at 0.60 and falls steadily to around 0.45, with a brief plateau around epoch 6 before continuing to improve.
-
-#pagebreak()
-
-// --- PAGE 13 ---
-This shorter fine-tuning window captures the critical early phase where the segmentation and classification components begin to jointly adapt; the steady loss drop without spikes confirms that the learning rate and batch size settings were well-suited for this stage.
-
-#align(center)[
-  #image("fullstack_loss_curve.png", width: 80%)
-  #v(-0.5em)
-  #text(9pt)[Figure 8. Full stack model fine-tuning loss and AUC curves (10 epochs). Top: AUC rises from 0.61 to approximately 0.70. Bottom: binary cross-entropy loss falls from 0.60 to approximately 0.45, showing stable early convergence.]
 ]
 
 === Segmentation Model Output After Training
@@ -291,14 +272,11 @@ Figure 9 shows the segmentation model's per-class activation maps on a real test
 The Edge-Ring channel correctly produces a strong circular activation at the wafer perimeter, and the Scratch channel shows elevated activation along the linear failure streak. Center, Loc, and Near-full channels are correctly suppressed. The maps are not perfectly sharp—there is some activation bleed into adjacent channels—but the primary spatial structures are clearly and correctly localized.
 
 #align(center)[
-  #image("segmentation_sample.jpg", width: 95%)
+  #image("../plots/segmentation_sample.png", width: 95%)
   #v(-0.5em)
   #text(9pt)[Figure 9. Segmentation model output on a test wafer after full training. Top row: ground-truth per-class masks showing Edge-Ring and Scratch patterns. Bottom row: model predicted activation maps — Edge-Ring and Scratch channels are correctly activated while other channels remain suppressed.]
 ]
 
-#pagebreak()
-
-// --- PAGE 14 ---
 == How the Test Images Were Generated
 The test images used in the model comparison were generated from the raw WM-811K pickle file using a dedicated script (`generate_images.py`). The script loads the dataset, filters for the eight labelled defect classes, samples 20 examples per class at random with a fixed seed for reproducibility, and saves each wafer map as a PNG image. The pixel values in the raw dataset are stored as integers in the set {0, 1, 2}; the script scales these to {0, 128, 255} for visualization (dividing by 2.0 and multiplying by 255) so that background pixels appear black, passing dies appear grey, and failing dies appear white. This scaling is applied only for saved image files, the model inference pipeline uses the original {0, 1, 2} normalization internally.
 
@@ -313,9 +291,8 @@ The test images used in the model comparison were generated from the raw WM-811K
 == Evaluation Gaps
 There is no held-out test set with genuine multi-label ground truth, because WM-811K does not provide one. The multi-defect evaluation is therefore entirely qualitative where we look at outputs and judged whether they look right, which is useful but not rigorous. A proper evaluation against real multi-defect wafer maps labelled by process engineers would be the next necessary step before anyone should rely on this system in production.
 
-#pagebreak()
 
-// --- PAGE 15 ---
+
 = Root Cause Analysis Beyond Defect Classification
 
 The process Engineer ultimately needed to know is why that defect occurred, which upstream process step, piece of equipment, or environmental condition caused the pattern they are looking at. This is root cause analysis (RCA), and it sits one level of reasoning above what a classification model alone can provide. Defect-patterns in semiconductor manufacturing have physical causes that are well understood in the industry. The eight defect classes in WM-811K each point to a specific type of process problem:
@@ -346,9 +323,8 @@ The system does not currently automate the link between defect type and root cau
 == Limitations of the Current RCA Support
 Several limitations constrain how far the current system can take a root cause investigation. The classification output is a probability score, not a causal claim. A 90% confidence score for Edge-Ring means the spatial pattern looks like an Edge-Ring, not that the tool responsible for edge processing is definitely the root cause. Multiple process steps can produce similar-looking defect patterns through different physical mechanisms, and the model has no way to distinguish between them without additional context. The multi-defect scenario adds further complexity: when two defect types co-occur, the engineer needs to determine whether they share a common root cause (one process excursion that happens to produce two spatial signatures) or represent two independent problems which the classifier cannot answer on its own.
 
-#pagebreak()
 
-// --- PAGE 16 ---
+
 = User Interface
 
 == Two Applications, Two Different Model Backends
@@ -367,10 +343,9 @@ The prediction results are displayed as a 3×3 grid of defect cards with one car
 
 The interface also handles edge cases cleanly. If the input image is too small, too uniform, or otherwise ambiguous, the confidence cards will show low scores across all classes, which is itself informative, it signals that the model does not recognize the pattern as any of the known defect types, prompting the engineer to investigate further or re-examine the source image.
 
-#pagebreak()
 
-// --- PAGE 17 ---
-= VII. Discussion: Transferable Design Insights
+
+= Discussion: Transferable Design Insights
 
 == Design Principles That Could Travel to Other Domains
 - *Spatial decomposition as explainability:* Breaking a classification problem into localization-then-classification means the intermediate spatial maps are themselves explanations. This is not limited to wafer inspection as it would be equally useful in medical imaging (showing which tissue region drove a diagnosis), PCB inspection, or any domain where knowing where is as important as knowing what.
@@ -388,10 +363,9 @@ Distribution shift is a genuine deployment risk. The WM-811K dataset comes from 
 
 The synthetic multi-defect training data has not been validated against real co-occurring defects. Until someone labels a set of genuine multi-defect wafer maps and tests the model against them, the multi-label behavior should be treated as promising but unconfirmed.
 
-#pagebreak()
 
-// --- PAGE 18 ---
-= VIII. Conclusion and Future Extensions
+
+= Conclusion and Future Extensions
 
 == What is Achieved
 We set out to build a defect diagnosis tool that could tell an engineer not just what is wrong with a wafer, but where. The two-stage pipeline combining a U-Net segmentation model with a spatially-attentive CNN classifier produces per-class spatial activation maps that are genuinely interpretable, not post-hoc approximations. The three-phase training curriculum made the pipeline stable to train. The synthetic multi-defect data generation gave the system the ability to handle co-occurring defects despite the WM-811K dataset's single-label structure. And the Streamlit interface gives engineers a way to use the system interactively, including the unusual but useful draw mode for hypothesis testing.
@@ -405,9 +379,8 @@ The final full stack model has 5.68 million parameters in total and achieves mul
 - *Dynamic Root cause linkage:* Linking a specific wafer's classification result to that wafer's actual process history, which tool ran it, at what time, with what parameter readings to produce a lot-specific corrective action like "tool RTP-03 was 12°C above nominal at 14:32." This requires a live MES/SPC database connection, which is genuinely a future extension since WM-811K contains no process history data.
 - *Integration with fab systems:* Connecting the tool to a manufacturing execution system would allow it to raise SPC alerts directly when high-confidence defect calls are made, closing the loop between diagnosis and process control.
 
-#pagebreak()
 
-// --- PAGE 19 ---
+
 = References
 
 #list(
