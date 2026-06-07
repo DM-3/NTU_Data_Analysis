@@ -14,13 +14,6 @@ print("MODEL DIR:", MODEL_DIR)
 print("FILES:", os.listdir(MODEL_DIR))
 
 @st.cache_resource
-def load_segmentation_model():
-    return load_model(
-        os.path.join(MODEL_DIR, "multi_defect_segmentation.keras"),
-        compile=False
-    )
-
-@st.cache_resource
 def load_fullstack_model():
     return load_model(
         os.path.join(MODEL_DIR, "multi_defect_fullstack.keras"),
@@ -30,8 +23,8 @@ def load_fullstack_model():
         }
     )
 
-seg_model = load_segmentation_model()
 fullstack_model = load_fullstack_model()
+seg_model = fullstack_model.layers[0]
 
 print("Segmentation model loaded")
 print("Fullstack model loaded")
