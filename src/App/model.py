@@ -4,14 +4,15 @@
 import numpy as np
 import os
 import streamlit as st
+import PIL
 from tensorflow.keras.models import load_model
 from config import LABELS, MODEL_DIR
 import tensorflow as tf
-from custom import SpatialAttention
+from datasets import WM_811K
+from spatial_attention import SpatialAttention
 tf.config.run_functions_eagerly(True)
 
-print("MODEL DIR:", MODEL_DIR)
-print("FILES:", os.listdir(MODEL_DIR))
+
 
 @st.cache_resource
 def load_fullstack_model():
@@ -23,70 +24,43 @@ def load_fullstack_model():
         }
     )
 
+
+print("MODEL DIR:", MODEL_DIR)
+print("FILES:", os.listdir(MODEL_DIR))
+
 fullstack_model = load_fullstack_model()
-seg_model = fullstack_model.layers[0]
+segmentation_model = fullstack_model.layers[0]
+classification_model = fullstack_model.layers[1]
 
-print("Segmentation model loaded")
-print("Fullstack model loaded")
+print("Models loaded")
 
-def predict_segmentation(img_batch):
-
-    masks = seg_model(
-        img_batch,
-        training=False
-    )[0].numpy()
-
-    print("MASK SHAPE:", masks.shape)
-    print("MASK MIN:", masks.min())
-    print("MASK MAX:", masks.max())
-    print("MASK MEAN:", masks.mean())
-
-    scores = np.max(
-        masks,
-        axis=(0,1)
-    )
-
-    print("SCORES:", scores)
-
-    return masks, scores
-
-def predict_classes(img_batch):
-
-    probs = fullstack_model(
-        img_batch,
-        training=False
-    )[0].numpy()
-
-    return probs
 
 # ← REMOVED @st.cache_data here.
 # Using @st.cache_data inside a function that calls @st.cache_resource objects
 # causes a cache-lock deadlock in Streamlit — the function hangs indefinitely.
 # The models themselves are already cached by @st.cache_resource, so this
 # wrapper cache is unnecessary and harmful.
+def predict_defects(image):
+    if isinstance(image, PIL.Image.Image):
+        image = np.array(image.convert("L"), dtype=np.float32)
+    
+    # values not in range [0,2]? -> presumably in range [0,255] -> rescale 
+    if np.max(image) > 2:       
+        image /= 127.5
 
-def predict_defects(image, preprocess_fn):
+    # apply WM_811K image preprocessing to mirror training data preprocessing
+    image = WM_811K.preprocess_image(image, segmentation_model.input_shape[1:3])
 
-    img = preprocess_fn(image)
+    # add batch dimension expected by model predict function
+    image = tf.expand_dims(image, axis=0)
+    
+    # inference - segmentation
+    masks = segmentation_model(image)
 
-    img_batch = np.expand_dims(img, axis=0)
+    # inference - classification
+    probs = classification_model(masks)
 
-    masks, mask_scores = predict_segmentation(img_batch)
-
-    probs = predict_classes(img_batch)
-
-    img = preprocess_fn(image)
-
-    print("PREPROCESSED SHAPE:", img.shape)
-    print("PREPROCESSED MIN:", img.min())
-    print("PREPROCESSED MAX:", img.max())
-    print("UNIQUE VALUES:", np.unique(img)[:20])
-
-    img_batch = np.expand_dims(img, axis=0)
-
-    print("BATCH SHAPE:", img_batch.shape)
     return {
-        "masks": masks,
-        "mask_scores": mask_scores,
-        "probabilities": probs
+        "masks": masks[0,:,:,:].numpy(),        # remove batch dimension
+        "probabilities": probs[0,:].numpy()     # remove batch dimension
     }

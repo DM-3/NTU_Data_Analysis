@@ -10,12 +10,25 @@ from io import BytesIO
 import base64
 import streamlit.components.v1 as components
 import traceback
+import os
+import json
+import tensorflow as tf
 
-from config import LABELS
-from utils import preprocess_image
+from config import LABELS, CURRENT_DIR
+from datasets import WM_811K
 from model import predict_defects
-from styles import load_css
-from rca_data import RCA_DATA
+
+
+
+# =========================
+# RCA Data
+# =========================
+@st.cache_data
+def read_rca():
+    with open(os.path.join(CURRENT_DIR, 'rca.json'), 'r') as file:
+        return json.load(file)
+    
+RCA_DATA = read_rca()
 
 # =========================
 # PAGE CONFIG
@@ -29,8 +42,12 @@ st.set_page_config(
 # =========================
 # CSS
 # =========================
-st.markdown(load_css(), unsafe_allow_html=True)
+@st.cache_data
+def read_styles():
+    with open(os.path.join(CURRENT_DIR, 'styles.html'), 'r') as file:
+        return file.read()
 
+st.markdown(read_styles(), unsafe_allow_html=True)
 
 # ==================================================
 # HELPER — numpy mask → base64 PNG for HTML embedding
@@ -40,14 +57,14 @@ def _mask_to_b64(mask_arr: np.ndarray, probability: float = 1.0) -> str:
     arr = mask_arr.copy().astype(np.float32)
 
     # Per-mask contrast stretch
-    mn, mx = arr.min(), arr.max()
-    if mx > mn:
-        arr = (arr - mn) / (mx - mn)
-    else:
-        arr = np.zeros_like(arr)
+    #mn, mx = arr.min(), arr.max()
+    #if mx > mn:
+    #    arr = (arr - mn) / (mx - mn)
+    #else:
+    #    arr = np.zeros_like(arr)
 
     # Weight by classifier probability so low-confidence masks stay dark
-    arr = arr * probability
+    #arr = arr * probability
 
     arr_uint8 = (arr * 255).clip(0, 255).astype(np.uint8)
 
@@ -194,9 +211,7 @@ with left_col:
             if st.session_state.predictions is None:
                 with st.spinner("Analyzing defects…"):
                     try:
-                        st.session_state.predictions = predict_defects(
-                            image, preprocess_image
-                        )
+                        st.session_state.predictions = predict_defects(image)
                         # ── Temporary debug ──
                         results = st.session_state.predictions
                         masks = results["masks"]
@@ -204,10 +219,10 @@ with left_col:
                         for i, label in enumerate(LABELS):
                             ch = masks[:, :, i]
                             st.write(f"{label} (prob={probs[i]:.3f}): min={ch.min():.4f} max={ch.max():.4f} mean={ch.mean():.4f}")
+                        st.rerun()
                     except Exception:
                         st.error("**Prediction failed.** Full traceback:")
                         st.code(traceback.format_exc())
-                st.rerun()
 
         else:
             st.markdown(
@@ -227,17 +242,15 @@ with left_col:
     # ============================
     elif mode == "Draw":
         theme   = st.get_option("theme.base")
-        is_dark = theme == "dark"
-        stroke  = "#E5E7EB" if is_dark else "#0F172A"
 
         canvas = st_canvas(
             display_toolbar=True,
             fill_color="rgba(255,255,255,0)",
             stroke_width=4,
-            stroke_color=stroke,
-            background_color="#FFFFFF",
+            stroke_color="#FFFFFF",
+            background_color="#000000",
             width=500,
-            height=300,
+            height=500,
             drawing_mode="freedraw",
             key="canvas_draw",
         )
@@ -245,26 +258,16 @@ with left_col:
         if canvas.image_data is not None and canvas.json_data is not None:
             objects = canvas.json_data.get("objects", [])
             if len(objects) > 0:
-                drawn = canvas.image_data[:, :, :3]
-                drawn = np.mean(drawn, axis=2)
-                # Invert: canvas is white-bg/black-stroke,
-                # model expects black-bg/bright-die
-                drawn = 255.0 - drawn
-                st.session_state.current_image = Image.fromarray(drawn.astype(np.uint8))
+                image = canvas.image_data[:,:,0] / 255 + 1
+                st.session_state.current_image = image
+                try:
+                    st.session_state.predictions = predict_defects(image)
+                except Exception:
+                    st.error("**Prediction failed.** Full traceback:")
+                    st.code(traceback.format_exc())
             else:
                 st.session_state.current_image = None
                 st.session_state.predictions   = None
-
-        if st.session_state.current_image is not None:
-            if st.button("Analyze Defect", type="primary", use_container_width=True):
-                with st.spinner("Analyzing defects…"):
-                    try:
-                        st.session_state.predictions = predict_defects(
-                            st.session_state.current_image, preprocess_image
-                        )
-                    except Exception:
-                        st.error("**Prediction failed.** Full traceback:")
-                        st.code(traceback.format_exc())
 
     st.markdown("</div>", unsafe_allow_html=True)
 
