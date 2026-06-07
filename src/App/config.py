@@ -10,13 +10,8 @@ SRC_DIR = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 
 if SRC_DIR not in sys.path:
     sys.path.append(SRC_DIR)
+# ✅ can now import from src dir
 
-# ✅ NOW import
-from datasets import WM_811K
-LABELS = [
-    label for label, idx in sorted(WM_811K.defect_to_int.items(), key=lambda x: x[1])
-    if idx != -1
-]
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, "..", ".."))

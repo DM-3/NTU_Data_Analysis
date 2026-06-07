@@ -6,18 +6,19 @@ import os
 import streamlit as st
 import PIL
 from tensorflow.keras.models import load_model
-from config import LABELS, MODEL_DIR
+from config import MODEL_DIR
 import tensorflow as tf
 from datasets import WM_811K
 from spatial_attention import SpatialAttention
 tf.config.run_functions_eagerly(True)
 
+import matplotlib.pyplot as plt
 
 
 @st.cache_resource
 def load_fullstack_model():
     return load_model(
-        os.path.join(MODEL_DIR, "multi_defect_fullstack.keras"),
+        os.path.join(MODEL_DIR, "multi_defect_fullstack_fine_tuned.keras"),
         compile=False,
         custom_objects={
             "SpatialAttention": SpatialAttention
@@ -51,6 +52,9 @@ def predict_defects(image):
     # apply WM_811K image preprocessing to mirror training data preprocessing
     image = WM_811K.preprocess_image(image, segmentation_model.input_shape[1:3])
 
+    plt.imshow(image)
+    plt.savefig('t.png')
+
     # add batch dimension expected by model predict function
     image = tf.expand_dims(image, axis=0)
     
@@ -59,6 +63,7 @@ def predict_defects(image):
 
     # inference - classification
     probs = classification_model(masks)
+    print('defect probabilities:', ''.join(f'{p:.2f} ' for p in probs[0,:]))
 
     return {
         "masks": masks[0,:,:,:].numpy(),        # remove batch dimension

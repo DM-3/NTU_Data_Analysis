@@ -14,7 +14,7 @@ import os
 import json
 import tensorflow as tf
 
-from config import LABELS, CURRENT_DIR
+from config import CURRENT_DIR
 from datasets import WM_811K
 from model import predict_defects
 
@@ -66,15 +66,15 @@ def _mask_to_b64(mask_arr: np.ndarray, probability: float = 1.0) -> str:
     # Weight by classifier probability so low-confidence masks stay dark
     #arr = arr * probability
 
-    arr_uint8 = (arr * 255).clip(0, 255).astype(np.uint8)
+    #arr_uint8 = (arr * 255).clip(0, 255).astype(np.uint8)
 
     # Jet colormap
     colormap = cm.get_cmap('jet')
     colored = (colormap(arr)[:, :, :3] * 255).astype(np.uint8)
 
     # Navy background for near-zero pixels
-    bg_mask = arr_uint8 < 15
-    colored[bg_mask] = [15, 23, 42]
+    #bg_mask = arr_uint8 < 15
+    #colored[bg_mask] = [15, 23, 42]
 
     img_pil = Image.fromarray(colored, mode="RGB")
     buf = BytesIO()
@@ -216,7 +216,7 @@ with left_col:
                         results = st.session_state.predictions
                         masks = results["masks"]
                         probs = np.array(results["probabilities"]).flatten()
-                        for i, label in enumerate(LABELS):
+                        for label, i in WM_811K.defect_to_int.items():
                             ch = masks[:, :, i]
                             st.write(f"{label} (prob={probs[i]:.3f}): min={ch.min():.4f} max={ch.max():.4f} mean={ch.mean():.4f}")
                         st.rerun()
@@ -246,7 +246,7 @@ with left_col:
         canvas = st_canvas(
             display_toolbar=True,
             fill_color="rgba(255,255,255,0)",
-            stroke_width=4,
+            stroke_width=12,
             stroke_color="#FFFFFF",
             background_color="#000000",
             width=500,
@@ -282,12 +282,6 @@ with right_col:
         probs   = np.array(results["probabilities"]).flatten()
         masks   = results["masks"]
 
-        sorted_preds = sorted(
-            zip(LABELS, probs),
-            key=lambda x: x[1],
-            reverse=True,
-        )
-
         # Confidence bar color per defect index
         BAR_COLORS = [
             "#06B6D4",  # Center   – cyan
@@ -316,8 +310,7 @@ with right_col:
             'font-family:-apple-system,BlinkMacSystemFont,sans-serif;">'
         )
 
-        for idx in range(len(LABELS)):
-            defect     = LABELS[idx]
+        for idx, defect in [(i,d) for i,d in WM_811K.defect_from_int.items() if i != -1]:
             confidence = float(probs[idx])
             mask_arr   = masks[:, :, idx]
             bar_color  = BAR_COLORS[idx % len(BAR_COLORS)]
@@ -381,7 +374,8 @@ if st.session_state.predictions is not None:
 
     results      = st.session_state.predictions
     probs        = np.array(results["probabilities"]).flatten()
-    sorted_preds = sorted(zip(LABELS, probs), key=lambda x: x[1], reverse=True)
+    sorted_preds = sorted(zip(range(WM_811K.n_classes-1), probs), key=lambda x: x[1], reverse=True)
+    sorted_preds = [(WM_811K.defect_from_int[i],p) for i,p in sorted_preds]
 
     top_defect, top_conf = sorted_preds[0]
     top_rca  = RCA_DATA.get(top_defect, {})
@@ -448,7 +442,8 @@ if st.session_state.predictions is not None:
     results      = st.session_state.predictions
     probs        = np.array(results["probabilities"]).flatten()
     masks        = results["masks"]
-    sorted_preds = sorted(zip(LABELS, probs), key=lambda x: x[1], reverse=True)
+    sorted_preds = sorted(zip(range(WM_811K.n_classes-1), probs), key=lambda x: x[1], reverse=True)
+    sorted_preds = [(WM_811K.defect_from_int[i],p) for i,p in sorted_preds]
 
     st.markdown(
         '<div style="font-size:22px;font-weight:700;color:#0F172A;margin-top:8px;margin-bottom:16px;">'
@@ -487,17 +482,15 @@ if st.session_state.predictions is not None:
         badge_style = SEV_BADGE_STYLE.get(sev_raw, "background:#E5E7EB;color:#374151;")
 
         # Encode mask image
-        defect_idx = LABELS.index(defect) if defect in LABELS else None
-        defect_prob = float(probs[defect_idx]) if defect_idx is not None else 1.0
-        mask_b64 = _mask_to_b64(masks[:, :, defect_idx], probability=defect_prob) if defect_idx is not None else None
+        mask_b64 = _mask_to_b64(masks[:, :, WM_811K.defect_to_int[defect]], probability=confidence)
         mask_html = (
-        f'<div style="background:#0F172A;border-radius:8px;overflow:hidden;padding:2px;">'
-        f'<img src="data:image/png;base64,{mask_b64}" '
-        f'style="width:100%;border-radius:6px;display:block;"/>'
-        f'</div>'
-        if mask_b64 else
-        '<div style="width:100%;height:80px;background:#0F172A;border-radius:8px;"></div>'
-    )
+            f'<div style="background:#0F172A;border-radius:8px;overflow:hidden;padding:2px;">'
+            f'<img src="data:image/png;base64,{mask_b64}" '
+            f'style="width:100%;border-radius:6px;display:block;"/>'
+            f'</div>'
+            if mask_b64 else
+            '<div style="width:100%;height:80px;background:#0F172A;border-radius:8px;"></div>'
+        )
 
         def _bullets(items, symbol, color):
             return "".join(
