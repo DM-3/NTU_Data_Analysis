@@ -247,6 +247,9 @@ with left_col:
             if len(objects) > 0:
                 drawn = canvas.image_data[:, :, :3]
                 drawn = np.mean(drawn, axis=2)
+                # Invert: canvas is white-bg/black-stroke,
+                # model expects black-bg/bright-die
+                drawn = 255.0 - drawn
                 st.session_state.current_image = Image.fromarray(drawn.astype(np.uint8))
             else:
                 st.session_state.current_image = None
