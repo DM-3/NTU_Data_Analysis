@@ -2,6 +2,7 @@
 # MAIN STREAMLIT APP
 # ==================================================
 import streamlit as st
+import matplotlib.cm as cm
 from PIL import Image
 import numpy as np
 from streamlit_drawable_canvas import st_canvas
@@ -34,12 +35,31 @@ st.markdown(load_css(), unsafe_allow_html=True)
 # ==================================================
 # HELPER — numpy mask → base64 PNG for HTML embedding
 # ==================================================
-def _mask_to_b64(mask_arr: np.ndarray) -> str:
+def _mask_to_b64(mask_arr: np.ndarray, probability: float = 1.0) -> str:
     """Convert a 2-D float/uint8 numpy array to a base64 PNG string."""
-    arr = mask_arr.copy()
-    if arr.dtype != np.uint8:
-        arr = (arr * 255).clip(0, 255).astype(np.uint8)
-    img_pil = Image.fromarray(arr)
+    arr = mask_arr.copy().astype(np.float32)
+
+    # Per-mask contrast stretch
+    mn, mx = arr.min(), arr.max()
+    if mx > mn:
+        arr = (arr - mn) / (mx - mn)
+    else:
+        arr = np.zeros_like(arr)
+
+    # Weight by classifier probability so low-confidence masks stay dark
+    arr = arr * probability
+
+    arr_uint8 = (arr * 255).clip(0, 255).astype(np.uint8)
+
+    # Jet colormap
+    colormap = cm.get_cmap('jet')
+    colored = (colormap(arr)[:, :, :3] * 255).astype(np.uint8)
+
+    # Navy background for near-zero pixels
+    bg_mask = arr_uint8 < 15
+    colored[bg_mask] = [15, 23, 42]
+
+    img_pil = Image.fromarray(colored, mode="RGB")
     buf = BytesIO()
     img_pil.save(buf, format="PNG")
     return base64.b64encode(buf.getvalue()).decode()
@@ -177,6 +197,13 @@ with left_col:
                         st.session_state.predictions = predict_defects(
                             image, preprocess_image
                         )
+                        # ── Temporary debug ──
+                        results = st.session_state.predictions
+                        masks = results["masks"]
+                        probs = np.array(results["probabilities"]).flatten()
+                        for i, label in enumerate(LABELS):
+                            ch = masks[:, :, i]
+                            st.write(f"{label} (prob={probs[i]:.3f}): min={ch.min():.4f} max={ch.max():.4f} mean={ch.mean():.4f}")
                     except Exception:
                         st.error("**Prediction failed.** Full traceback:")
                         st.code(traceback.format_exc())
@@ -290,7 +317,7 @@ with right_col:
             bar_color  = BAR_COLORS[idx % len(BAR_COLORS)]
 
             # Base64-encode mask for inline img
-            mask_b64_grid = _mask_to_b64(mask_arr)
+            mask_b64_grid = _mask_to_b64(mask_arr, probability=float(probs[idx]))
 
             grid_html += (
                 f'<div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:12px;'
@@ -300,9 +327,11 @@ with right_col:
                 f'<div style="text-align:center;font-weight:700;font-size:14px;'
                 f'color:#0F172A;padding:8px 8px 6px 8px;">{defect}</div>'
 
-                # Mask image — no padding, fills full width
+                # mask image
+                f'<div style="background:#0F172A;padding:4px;">'
                 f'<img src="data:image/png;base64,{mask_b64_grid}" '
-                f'style="width:100%;display:block;"/>'
+                f'style="width:100%;object-fit:contain;display:block;"/>'
+                f'</div>'
 
                 # Confidence bar
                 f'<div style="background:{bar_color};padding:6px 0;'
@@ -453,13 +482,16 @@ if st.session_state.predictions is not None:
 
         # Encode mask image
         defect_idx = LABELS.index(defect) if defect in LABELS else None
-        mask_b64   = _mask_to_b64(masks[:, :, defect_idx]) if defect_idx is not None else None
-        mask_html  = (
-            f'<img src="data:image/png;base64,{mask_b64}" '
-            f'style="width:100%;border-radius:8px;display:block;"/>'
-            if mask_b64 else
-            '<div style="width:100%;height:80px;background:#1E293B;border-radius:8px;"></div>'
-        )
+        defect_prob = float(probs[defect_idx]) if defect_idx is not None else 1.0
+        mask_b64 = _mask_to_b64(masks[:, :, defect_idx], probability=defect_prob) if defect_idx is not None else None
+        mask_html = (
+        f'<div style="background:#0F172A;border-radius:8px;overflow:hidden;padding:2px;">'
+        f'<img src="data:image/png;base64,{mask_b64}" '
+        f'style="width:100%;border-radius:6px;display:block;"/>'
+        f'</div>'
+        if mask_b64 else
+        '<div style="width:100%;height:80px;background:#0F172A;border-radius:8px;"></div>'
+    )
 
         def _bullets(items, symbol, color):
             return "".join(
