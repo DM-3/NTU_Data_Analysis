@@ -171,7 +171,79 @@
 // ╔══════════════════════════════════════════════════════════╗
 // ║  SLIDE 4 — WM-811K Dataset & Defect Classes             ║
 // ╚══════════════════════════════════════════════════════════╝
+// 
+// 
+// 
+#slide-title[WM-811K Dataset: 8 Defect Classes]
+
+
+#grid(
+  columns: (1fr, 1fr, 1fr, 1fr),
+  column-gutter: 10pt,
+  row-gutter: 10pt,
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Center]]
+    #figure(
+  image("icons\center.png", width: 60%)
+) <my_fig_label>
+
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Donut]]
+    #figure(
+  image("icons\donut.png", width: 60%)
+) <my_fig_label>
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Edge-Loc]]
+    #figure(
+  image("icons\edge-loc.png", width: 60%)
+) <my_fig_label>
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Edge-Ring]]
+    #figure(
+  image("icons\edge-ring.png", width: 60%)
+) <my_fig_label>
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Loc]]
+    #figure(
+  image("icons\local.png", width: 60%)
+) <my_fig_label>
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Random]]
+    #figure(
+  image("icons\zufall.png", width: 60%)
+) <my_fig_label>
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Scratch]]
+    #figure(
+  image("icons\scratch.png", width: 60%)
+) <my_fig_label>
+  ],
+
+  card[
+    #align(center)[#text(fill: accent2, weight: "bold")[Near-full]]
+    #figure(
+  image("icons\fast.png", width: 60%)
+) <my_fig_label>
+  ],
+)
+
+#slide-num(4)
+#pagebreak()
 #slide-title[WM-811K Dataset: 8 Defect Classes + None]
+
 
 #grid(
   columns: (1fr, 1fr, 1fr, 1fr),
@@ -234,7 +306,7 @@
   ]
 ]
 
-#slide-num(4)
+#slide-num(5)
 #pagebreak()
 
 
@@ -345,15 +417,15 @@
   [
     #card[
       #text(fill: accent, weight: "bold")[Stage 1 — Segmentation Model]
-      #text(size: 12pt, fill: muted)[ (U-Net-inspired · ~3.21 M parameters)]
-      #v(0.4em)
+      #text(size: 12pt, fill: muted)[ (U-Net-inspired)] //· ~3.21 M parameters)]
+          #figure(  image("plots\Unet.png", width: 95%)
+) <my_fig_label>
       #item[Encoder: 4 conv blocks at filter depths *32, 64, 128, 256* + MaxPooling]
-      #item[Bottleneck: GlobalAveragePooling → two Dense layers → reshape + upsample]
-      #item[Skip connections let decoder recover spatial detail lost in bottleneck]
-      #item[Output: *8-channel map at 96×96 resolution* — one channel per defect class]
+      //#item[Bottleneck: GlobalAveragePooling → two Dense layers → reshape + upsample]
+      //#item[Skip connections let decoder recover spatial detail lost in bottleneck]
+      //#item[Output: *8-channel map at 96×96 resolution* — one channel per defect class]
       #item[Acts as *spatial analyst*: translates raw wafer map into 8 spatial overlay maps]
     ]
-    #v(0.5em)
     
   ],
 
@@ -557,6 +629,64 @@
 // ╔══════════════════════════════════════════════════════════╗
 // ║  SLIDE 11 — Design Decision 4: Three-Phase Training     ║
 // ╚══════════════════════════════════════════════════════════╝
+// 
+#slide-title[Design Decision 4: Three-Phase Training Curriculum]
+
+#figure(
+  image("plots\classification_pretrain_loss_curve.png", width: 50%)
+) <my_fig_label>
+
+#slide-num(11)
+#pagebreak()
+
+#slide-title[Design Decision 4: Three-Phase Training Curriculum]
+
+#figure(
+  image("plots\fullstack_loss_curve.png", width: 50%)
+) <my_fig_label>
+
+#slide-num(11)
+#pagebreak()
+#slide-title[Design Decision 4: Three-Phase Training Curriculum]
+
+#figure(
+  image("plots\segmentation_loss_curve.png", width: 50%)
+) <my_fig_label>
+
+#slide-num(11)
+#pagebreak()
+
+#slide-title[Design Decision 4: Three-Phase Training Curriculum]
+
+#figure(
+  image("plots\segmentation_sample_100epochs.png", width: 50%)
+) <my_fig_label>
+
+#slide-num(11)
+#pagebreak()
+
+#slide-title[Design Decision 4: Three-Phase Training Curriculum]
+
+#figure(
+  image("plots\segmentation_sample_init.png", width: 60%)
+) <my_fig_label>
+
+#slide-num(11)
+#pagebreak()
+
+#slide-title[Design Decision 4: Three-Phase Training Curriculum]
+
+#figure(
+  image("plots\segmentation_sample.png", width: 60%)
+) <my_fig_label>
+
+#slide-num(11)
+#pagebreak()
+
+
+
+
+
 #slide-title[Design Decision 4: Three-Phase Training Curriculum]
 
 #grid(
