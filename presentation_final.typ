@@ -915,8 +915,6 @@
 
   card[
     #text(fill: bad, weight: "bold")[Spatial ambiguity on overlapping synthetic defects]
-    #item[Donut + Near-full: both cluster near wafer edge → segmentation model produced *merged activation blobs*]
-    #item[Recognised that something was happening at the edge, but not *which* specific pattern]
     #item[Known limitation — would require real labelled multi-defect data to address properly]
   ]
 )
@@ -956,7 +954,7 @@
 #v(0.5em)
 #card[
   #text(fill: accent, weight: "bold")[Deployment risk: automation complacency] #v(0.2em)
-  #text(size: 14pt)[When system shows 94% confidence for Edge-Ring, real risk that engineer accepts it *without checking spatial maps* — opposite of intended behaviour. Interface shows all 8 class probabilities simultaneously to make uncertainty visible and encourage critical engagement.]
+  #text(size: 14pt)[When system shows high confidence for a certain defect, real risk that engineer accepts it *without checking spatial maps* — opposite of intended behaviour. Interface shows all 8 class probabilities simultaneously to make uncertainty visible and encourage critical engagement.]
 ]
 
 #slide-num(17)
