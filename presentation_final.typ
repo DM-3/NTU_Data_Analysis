@@ -677,33 +677,35 @@
 
 #training-slide(
   [Model Training],
-  "plots/classification_pretrain_loss_curve.png",
-  [Classifier pretraining loss / AUC curve],
-  "plots/segmentation_sample_init.png",
+  "plots/segmentation_loss_curve.png",
+  [Segmentation training loss curve],
+    "plots/segmentation_sample_init.png",
   [Initial segmentation output before effective training],
-  [Phase 1–2],
-  [
-    • With segmentation frozen, classifier learning is stable: AUC rises from about 0.65 to 0.86 while loss falls from 0.82 toward 0.30. \
-    • The refined train/validation run reaches *val AUC 0.94* at best epoch 19, showing the classifier can learn useful signals once the upstream representation is fixed. \
-    • In contrast, the untrained segmentation output is still mostly noise.
+
+  [Segmentation learning outcome],
+  [    • Segmentation loss drops from 0.140 to about *0.017* over 100 epochs; steep early improvement then slower refinement. \
+    • After training, defect-specific channels become spatially meaningful: Edge-Ring lights up the perimeter, Scratch traces the streak, irrelevant channels stay low. \
+    • Classifier now receives structured per-class maps; no blended or noisy features.
   ],
   13,
 )
 
 #training-slide(
   [Model Training],
-  "plots/segmentation_loss_curve.png",
-  [Segmentation training loss curve],
+  "plots/classification_pretrain_loss_curve.png",
+  [Classifier pretraining loss / AUC curve],
   "plots/segmentation_sample.png",
   [Segmentation output after training],
-  [Segmentation learning outcome],
+  [Phase 1–2],
   [
-    • Segmentation loss drops from 0.140 to about *0.017* over 100 epochs, with a steep early improvement followed by slower refinement. \
-    • After training, defect-specific channels become spatially meaningful: Edge-Ring lights up the perimeter, Scratch traces the streak, and irrelevant channels stay low. \
-    • This matters because the classifier now receives structured per-class maps instead of blended or noisy features.
+    • With segmentation frozen, classifier learning is stable: AUC rises from about 0.65 to 0.86 while loss falls from 0.82 toward 0.30. \
+    • The refined train/validation run reaches *val AUC 0.94* at best epoch 19, showing the classifier can learn useful signals once the upstream representation is fixed. \
+    • In contrast, the untrained segmentation output is still mostly noise.
   ],
   14,
 )
+
+
 
 #training-slide(
   [Model Training],
@@ -713,8 +715,8 @@
   [Segmentation sample after extended training],
   [Full-stack fine-tuning],
   [
-    • After unfreezing the full pipeline, training AUC rises to about *0.95* and validation AUC peaks above *0.96*, with the best checkpoint at epoch 40. \
-    • Validation is more volatile in this phase because both segmentation and classifier weights are changing together. \
+    • After unfreezing the full pipeline, training AUC rises to about *0.95* and validation AUC peaks above *0.96*, with best checkpoint: epoch 40. \
+    • Validation is more volatile; both segmentation and classifier weights are changing together. \
     • Joint optimisation also cleans up the segmentation maps further, reducing grain/noise while preserving interpretable class-specific spatial structure.
   ],
   15,
