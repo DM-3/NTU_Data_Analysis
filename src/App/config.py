@@ -10,7 +10,7 @@ SRC_DIR = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
 
 if SRC_DIR not in sys.path:
     sys.path.append(SRC_DIR)
-# ✅ can now import from src dir
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
