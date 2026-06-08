@@ -19,7 +19,7 @@
 #let accent   = rgb("#38bdf8")
 #let accent2  = rgb("#f97316")
 #let muted    = rgb("#94a3b8")
-#let surface  = rgb("#1e2d3d")
+#let surface  = rgb("#361e3d")
 #let good     = rgb("#4ade80")
 #let bad      = rgb("#f87171")
 
@@ -95,25 +95,29 @@
   #v(0.4em)
   #text(size: 14pt, fill: rgb("#e8edf2"))[#body]
 ]
+#let side-caption(img, cap, img-width: 100%, cap-width: 0.5fr) = grid(
+  columns: (cap-width, auto),
+  column-gutter: 5pt,
+  align: (left, center),
+    [
+    #cap
+  ],
+  [
+    #image(img, width: img-width)
+  ],
 
-// Helper for stacked figures on left + description on right
+)
 #let training-slide(title, img1, cap1, img2, cap2, text-title, text-body, n) = [
   #slide-title[#title]
 
   #grid(
-    columns: (1.4fr, 1fr),
+    columns: (1.4fr, 0.5fr),
     column-gutter: 18pt,
     align: (left, top),
 
     [
-      #figure(
-        image(img1, width: 55%),
-        caption: [#cap1],
-      )
-      #figure(
-        image(img2, width: 80%),
-        caption: [#cap2],
-      )
+      #side-caption(img1, cap1, img-width: 75%)
+      #side-caption(img2, cap2, img-width: 75%)
     ],
 
     [
@@ -293,8 +297,7 @@
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Center]]
-    #figure(
-  image("icons\center.png", width: 60%)
+    #figure(  image("icons\center.png", width: 60%)
 ) <my_fig_label>
 
   ],
@@ -689,7 +692,48 @@
 #slide-num(10)
 #pagebreak()
 
+#slide-title[Design Decision 4: Three-Phase Training Curriculum]
 
+#grid(
+  columns: (1fr, 1fr, 1fr),
+  column-gutter: 12pt,
+
+  card[
+    #text(fill: accent, weight: "bold")[1. Train Segmentation Model Alone]
+    #v(0.1em)
+    #item[100 epochs, 64 steps/epoch, batch size 16]
+    #item[Loss: 0.140 → *≈ 0.017*]
+    #item[Sharp drop first 5 epochs → slow decline]
+    #item[Smooth convergence]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[2. Freeze Seg, Pre-Train Classifier Head]
+    #v(0.1em)
+    #item[~32 epochs - segmentation frozen]
+    #item[AUC: 0.65 → 0.86]
+    #item[Loss: 0.82 → ~0.30]
+    #item[Refined 20-epoch run: train AUC 0.93, *val AUC 0.94* at best epoch 19]
+  ],
+
+  card[
+    #text(fill: accent, weight: "bold")[3. End-to-End Fine-Tuning]
+    #v(0.1em)
+    #item[50 epochs · batch size 64 · both models unfrozen]
+    #item[Train AUC: 0.91 → ~0.95]
+    #item[*Val AUC peaks above 0.96* · best epoch 40]
+    #item[Train loss: 0.27 → ~0.20]
+    #item[Validation more volatile]
+  ],
+)
+
+#card[
+  #text(fill: accent2, weight: "bold")[Why curriculum training?] #h(4pt)
+  #text(size: 14pt)[End-to-end from scratch: classifier received random-noise segmentation outputs → erratic gradient flow. Training each stage to convergence before connecting reduces gradient interference. Broadly applicable pattern for any multi-stage deep learning pipeline.]
+]
+
+#slide-num(11)
+#pagebreak()
 
 
 
@@ -744,48 +788,7 @@
 
 
 
-#slide-title[Design Decision 4: Three-Phase Training Curriculum]
 
-#grid(
-  columns: (1fr, 1fr, 1fr),
-  column-gutter: 12pt,
-
-  card[
-    #text(fill: accent, weight: "bold")[1. Train Segmentation Model Alone]
-    #v(0.1em)
-    #item[100 epochs, 64 steps/epoch, batch size 16]
-    #item[Loss: 0.140 → *≈ 0.017*]
-    #item[Sharp drop first 5 epochs → slow decline]
-    #item[Smooth convergence]
-  ],
-
-  card[
-    #text(fill: accent, weight: "bold")[2. Freeze Seg, Pre-Train Classifier Head]
-    #v(0.1em)
-    #item[~32 epochs - segmentation frozen]
-    #item[AUC: 0.65 → 0.86]
-    #item[Loss: 0.82 → ~0.30]
-    #item[Refined 20-epoch run: train AUC 0.93, *val AUC 0.94* at best epoch 19]
-  ],
-
-  card[
-    #text(fill: accent, weight: "bold")[3. End-to-End Fine-Tuning]
-    #v(0.1em)
-    #item[50 epochs · batch size 64 · both models unfrozen]
-    #item[Train AUC: 0.91 → ~0.95]
-    #item[*Val AUC peaks above 0.96* · best epoch 40]
-    #item[Train loss: 0.27 → ~0.20]
-    #item[Validation more volatile]
-  ],
-)
-
-#card[
-  #text(fill: accent2, weight: "bold")[Why curriculum training?] #h(4pt)
-  #text(size: 14pt)[End-to-end from scratch: classifier received random-noise segmentation outputs → erratic gradient flow. Training each stage to convergence before connecting reduces gradient interference. Broadly applicable pattern for any multi-stage deep learning pipeline.]
-]
-
-#slide-num(11)
-#pagebreak()
 
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -892,80 +895,11 @@
 
 
 
-// ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 15 — Model Comparison Results                   ║
-// ╚══════════════════════════════════════════════════════════╝
-#slide-title[Model Comparison: 4 Architectures on 160 Test Images]
-
-#align(center)[
-  #table(
-    columns: (auto, auto, auto, auto, auto),
-    inset: 8pt,
-    align: (left, center, center, center, center),
-    stroke: 0.4pt + muted,
-    fill: (col, row) => {
-      if row == 0 { surface }
-      else if row == 9 { surface }
-      else { rgb("#0f1923") }
-    },
-
-    text(fill: accent, weight: "bold")[Class],
-    text(fill: accent, weight: "bold")[Best CNN\n(no aug)],
-    text(fill: accent, weight: "bold")[Best CNN\n(+ aug)],
-    text(fill: accent, weight: "bold")[Fullstack],
-    text(fill: accent, weight: "bold")[Seg → CLF],
-
-    [Center],    text(fill: bad)[0%],  text(fill: bad)[0%],  text(fill: bad)[0%], text(fill: good)[95%],
-    [Donut],     text(fill: good)[65%], text(fill: bad)[10%], text(fill: bad)[0%], text(fill: bad)[0%],
-    [Edge-Loc],  [30%],  text(fill: good)[85%], [—], text(fill: bad)[0%],
-    [Edge-Ring], text(fill: bad)[0%],  text(fill: bad)[0%],  text(fill: bad)[0%], text(fill: bad)[0%],
-    [Loc],       text(fill: bad)[0%],  text(fill: bad)[0%],  text(fill: bad)[0%], text(fill: bad)[0%],
-    [Near-full], [5%],   [15%],  text(fill: good)[100%], text(fill: bad)[0%],
-    [Random],    [5%],   text(fill: bad)[0%],   [35%], text(fill: bad)[0%],
-    [Scratch],   text(fill: bad)[0%],  text(fill: bad)[0%],  text(fill: bad)[0%], text(fill: bad)[0%],
-
-    text(weight: "bold")[Overall],
-    text(fill: accent2, weight: "bold")[13.1%],
-    text(fill: accent2, weight: "bold")[13.8%],
-    text(fill: good, weight: "bold")[17.5%],
-    [11.9%],
-  )
-]
-
-#v(0.3em)
-#text(size: 13pt, fill: muted)[*Random chance on 8-class balanced test = 12.5%.* All models near random on most classes. Test images: 20 samples per class × 8 classes = 160 PNG images from WM-811K via generate_images.py (fixed seed, {0,1,2} → {0,128,255} pixel scaling for visualisation only).]
-
-#slide-num(15)
-#pagebreak()
 
 
 // ╔══════════════════════════════════════════════════════════╗
 // ║  SLIDE 16 — Failure Cases                              ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[Critical Failure Cases and Unexpected Outcomes]
-
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 16pt,
-
-  card[
-    #text(fill: bad, weight: "bold")[Per-class accuracy collapse (all models)]
-    #item[Every architecture collapses to high accuracy on 1–2 dominant classes while failing on the rest]
-    #item[Sign of class imbalance + class-specific shortcuts rather than general spatial representations]
-    #item[No single architecture achieved balanced performance across all 8 classes]
-  ],
-
-  card[
-    #text(fill: bad, weight: "bold")[Spatial ambiguity on overlapping synthetic defects]
-    #item[Donut + Near-full: both cluster near wafer edge → segmentation model produced *merged activation blobs*]
-    #item[Recognised that something was happening at the edge, but not *which* specific pattern]
-    #item[Known limitation — would require real labelled multi-defect data to address properly]
-  ]
-)
-
-#slide-num(16)
-#pagebreak()
-
 #slide-title[Critical Failure Cases and Unexpected Outcomes]
 
 #grid(
@@ -980,14 +914,14 @@
   ],
 
   card[
-    #text(fill: bad, weight: "bold")[Early Phase 3 instability + sparse labels]
-    #item[Validation loss spiked in first 2–3 fine-tuning epochs before settling — differential learning rates not implemented (time constraint)]
-    #item[Only ~12,800 of 811,000 maps labelled — thin supervision signal likely causing gaps for rare morphologies]
-    #item[Seg → CLF pipeline: classifier overfit to "Center" class (confidence 1.0 for over 90% of all inputs regardless of true class)]
-  ],
+    #text(fill: bad, weight: "bold")[Spatial ambiguity on overlapping synthetic defects]
+    #item[Donut + Near-full: both cluster near wafer edge → segmentation model produced *merged activation blobs*]
+    #item[Recognised that something was happening at the edge, but not *which* specific pattern]
+    #item[Known limitation — would require real labelled multi-defect data to address properly]
+  ]
 )
 
-#slide-num(17)
+#slide-num(16)
 #pagebreak()
 // ╔══════════════════════════════════════════════════════════╗
 // ║  SLIDE 17 — What Evaluation Cannot Tell Us             ║
