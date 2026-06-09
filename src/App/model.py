@@ -12,8 +12,6 @@ from datasets import WM_811K
 from spatial_attention import SpatialAttention
 tf.config.run_functions_eagerly(True)
 
-import matplotlib.pyplot as plt
-
 
 @st.cache_resource
 def load_fullstack_model():
@@ -51,9 +49,6 @@ def predict_defects(image):
 
     # apply WM_811K image preprocessing to mirror training data preprocessing
     image = WM_811K.preprocess_image(image, segmentation_model.input_shape[1:3])
-
-    plt.imshow(image)
-    plt.savefig('t.png')
 
     # add batch dimension expected by model predict function
     image = tf.expand_dims(image, axis=0)

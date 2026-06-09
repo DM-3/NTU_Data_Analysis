@@ -202,7 +202,7 @@
     #item[Modern fabs produce *thousands of wafers per day*]
     #item[Every undetected fault processes *more wafers* under failure conditions]
     #figure(
-      image("icons\chip.jpg", width: 60%)
+      image("icons/chip.jpg", width: 60%)
     ) <my_fig_label>
     #v(0.5em)
   ],
@@ -223,42 +223,42 @@
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Center]]
-    #figure(image("icons\center.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/center.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Donut]]
-    #figure(image("icons\donut.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/donut.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Edge-Loc]]
-    #figure(image("icons\edge-loc.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/edge-loc.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Edge-Ring]]
-    #figure(image("icons\edge-ring.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/edge-ring.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Loc]]
-    #figure(image("icons\local.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/local.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Random]]
-    #figure(image("icons\zufall.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/zufall.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Scratch]]
-    #figure(image("icons\scratch.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/scratch.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Near-full]]
-    #figure(image("icons\fast.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/fast.png", width: 60%)) <my_fig_label>
   ],
 )
 
@@ -277,22 +277,22 @@
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Center]]
-    #figure(image("icons\center.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/center.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Donut]]
-    #figure(image("icons\donut.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/donut.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Edge-Loc]]
-    #figure(image("icons\edge-loc.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/edge-loc.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Edge-Ring]]
-    #figure(image("icons\edge-ring.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/edge-ring.png", width: 60%)) <my_fig_label>
   ],
 
   card[
@@ -331,22 +331,22 @@
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Loc]]
-    #figure(image("icons\local.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/local.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Random]]
-    #figure(image("icons\zufall.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/zufall.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Scratch]]
-    #figure(image("icons\scratch.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/scratch.png", width: 60%)) <my_fig_label>
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Near-full]]
-    #figure(image("icons\fast.png", width: 60%)) <my_fig_label>
+    #figure(image("icons/fast.png", width: 60%)) <my_fig_label>
   ],
 
   card[
@@ -436,7 +436,7 @@
     #card[
       #text(fill: accent, weight: "bold")[Stage 1 — Segmentation Model]
       #text(size: 12pt, fill: muted)[(U-Net-inspired)]
-      #figure(image("plots\Unet.png", width: 75%)) <my_fig_label>
+      #figure(image("plots/Unet.png", width: 75%)) <my_fig_label>
       #item[Encoder: 4 conv blocks at filter depths *32, 64, 128, 256* + MaxPooling]
       #item[Acts as *spatial analyst*: translates raw wafer map into 8 spatial overlay maps]
     ]
