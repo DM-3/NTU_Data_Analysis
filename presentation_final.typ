@@ -699,7 +699,7 @@
   [Phase 1–2],
   [
     • With segmentation frozen, classifier learning is stable: AUC rises from about 0.65 to 0.86 while loss falls from 0.82 toward 0.30. \
-    • The refined train/validation run reaches *val AUC 0.94* at best epoch 19, showing the classifier can learn useful signals once the upstream representation is fixed. \
+    • The refined train/validation run reaches *val AUC 0.94* at best epoch 20, showing the classifier can learn useful signals once the upstream representation is fixed. \
     • In contrast, the untrained segmentation output is still mostly noise.
   ],
   14,
@@ -715,7 +715,7 @@
   [Segmentation sample after extended training],
   [Full-stack fine-tuning],
   [
-    • After unfreezing the full pipeline, training AUC rises to about *0.95* and validation AUC peaks above *0.96*, with best checkpoint: epoch 40. \
+    • After unfreezing the full pipeline, validation AUC peaks above *0.93*, with best checkpoint: epoch 24. \
     • Validation is more volatile; both segmentation and classifier weights are changing together. \
     • Joint optimisation also cleans up the segmentation maps further, reducing grain/noise while preserving interpretable class-specific spatial structure.
   ],
@@ -781,8 +781,8 @@
 
   card[
     #text(fill: accent, weight: "bold")[Phase 3 Fine-Tuning]
-    #item[Training AUC rises from roughly 0.90 to *~0.95*]
-    #item[Validation AUC peaks *above 0.96*, best checkpoint at epoch 40]
+    #item[Training AUC rises from roughly 0.90 to *~0.94*]
+    #item[Validation AUC peaks *above 0.93*, best checkpoint at epoch 24]
     #item[Early validation volatility expected after unfreezing all layers]
     #item[Train and validation loss both trend toward *~0.20*]
   ],
@@ -896,7 +896,7 @@
 
     card[
       #v(0.3em)
-      #text(size: 14pt)[MSE loss ≈ 0.017 · Val AUC *above 0.96* at best epoch 40 · Interpretable per-class spatial maps]
+      #text(size: 14pt)[MSE loss ≈ 0.017 · Val AUC *above 0.93* at best epoch 24 · Interpretable per-class spatial maps]
     ],
   )
 
