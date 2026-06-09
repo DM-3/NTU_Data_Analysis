@@ -426,12 +426,11 @@
 // ╔══════════════════════════════════════════════════════════╗
 // ║  SLIDE 7 — System Architecture I                        ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[System Architecture: Two-Stage Pipeline]
+#slide-title[System Architecture I]
 
 #grid(
   columns: (1fr, 1fr),
   column-gutter: 18pt,
-
   [
     #card[
       #text(fill: accent, weight: "bold")[Stage 1 — Segmentation Model]
@@ -441,32 +440,6 @@
       #item[Acts as *spatial analyst*: translates raw wafer map into 8 spatial overlay maps]
     ]
   ],
-
-  [
-    #card[
-      #text(fill: accent, weight: "bold")[Streamlit UI (app_best_wafer_cnn.py)]
-      #v(0.4em)
-      #item[Loads *best_wafer_cnn.keras* trained model]
-      #item[*Upload mode*: engineer drags in a wafer map PNG/JPG/JPEG]
-      #item[*Draw mode*: freehand canvas sketch for hypothesis testing]
-      #item[Results: *3×3 grid of confidence cards* — defect name + percentage + colour-coded bar]
-      #v(0.3em)
-      #text(size: 13pt)[Cyan/blue: confidence above 70% · Grey: below 30% · Gradient in between]
-    ]
-  ],
-)
-
-#slide-num(7)
-#pagebreak()
-
-// ╔══════════════════════════════════════════════════════════╗
-// ║  SLIDE 8 — System Architecture II                       ║
-// ╚══════════════════════════════════════════════════════════╝
-#slide-title[System Architecture: Two-Stage Pipeline]
-
-#grid(
-  columns: (1fr, 1fr),
-  column-gutter: 18pt,
   [
     #card[
       #text(fill: accent, weight: "bold")[Stage 2 — Classification Model]
@@ -476,14 +449,39 @@
       #item[SpatialAttention: avg + max pool across channels → 7×7 conv → soft mask]
       #item[GlobalAveragePooling → 2 × Dense(512) + BatchNorm + Dropout]
     ]
+  ]
+)
+
+#slide-num(7)
+#pagebreak()
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  SLIDE 8 — System Architecture II                       ║
+// ╚══════════════════════════════════════════════════════════╝
+#slide-title[System Architecture II]
+
+#grid(
+  columns: (1fr, 1fr),
+  column-gutter: 18pt,
+  [
+    #card[
+      #text(fill: accent, weight: "bold")[Streamlit UI]
+      #v(0.4em)
+      #item[Loads trained fullstack model]
+      #item[*Upload mode*: engineer drags in a wafer map PNG/JPG/JPEG]
+      #item[*Draw mode*: freehand canvas sketch for hypothesis testing]
+      #item[Results: *2×4 grid of confidence cards* — defect name + percentage + colour-coded bar]
+      #v(0.3em)
+      #text(size: 13pt)[Cyan/blue: confidence above 70% · Grey: below 30% · Gradient in between]
+    ]
   ],
   [
     #card[
-      #text(fill: accent2, weight: "bold")[Total Parameters: 5.68 M]
+      #text(fill: accent2, weight: "bold")[Total Parameters: 4.86 M]
       #v(0.4em)
-      #text(size: 14pt)[Segmentation: 3.21 M + Classification: 2.11 M]
+      #text(size: 14pt)[- Segmentation: 2.75 M]
       #v(0.4em)
-      #text(fill: muted, size: 13pt)[Comparison baseline: *app_direct_classifier_cnn.py* — same UI experience wired to direct CNN classifier]
+      #text(size: 14pt)[- Classification: 2.11 M]
     ]
     #v(0.5em)
     #card[
