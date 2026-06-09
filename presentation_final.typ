@@ -600,20 +600,19 @@
   card[
     #text(fill: accent, weight: "bold")[2. Freeze Seg, Pre-Train Classifier Head]
     #v(0.1em)
-    #item[~32 epochs - segmentation frozen]
-    #item[AUC: 0.65 → 0.86]
-    #item[Loss: 0.82 → ~0.30]
-    #item[Refined 20-epoch run: train AUC 0.93, *val AUC 0.94* at best epoch 19]
+    #item[30 epochs - segmentation frozen]
+    #item[AUC: 0.78 → 0.91]
+    #item[Loss: 0.7 → ~0.2]
+    #item[Smooth convergence]
   ],
 
   card[
-    #text(fill: accent, weight: "bold")[3. End-to-End Fine-Tuning]
+    #text(fill: accent, weight: "bold")[3. End-to-End Fine-Tuning Fullstack Model]
     #v(0.1em)
-    #item[50 epochs · batch size 64]
-    #item[Train AUC: 0.90 → ~0.95]
-    #item[*Val AUC peaks above 0.96* · best epoch 40]
-    #item[Train and val loss trend toward ~0.20]
-    #item[Validation more volatile]
+    #item[~30 epochs, 64 steps/epoch, batch size 16]
+    #item[AUC: 0.89 → ~0.93]
+    #item[Loss: 0.28 → ~0.22]
+    #item[Less smooth curve]
   ],
 )
 
