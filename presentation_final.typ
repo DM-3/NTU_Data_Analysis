@@ -174,6 +174,7 @@
   column-gutter: 18pt,
 
   [
+    #v(0.5em)
     #item[Chips manufactured on thin circular silicon discs — *wafers* — with hundreds of chips etched side-by-side]
     #item[After probe test, every die result is stored as a pixel: *0 = background, 1 = pass, 2 = fail*]
     #item[The *spatial pattern* of failures — not the count — identifies the responsible process step]
@@ -201,8 +202,8 @@
     #v(0.5em)
     #item[Modern fabs produce *thousands of wafers per day*]
     #item[Every undetected fault processes *more wafers* under failure conditions]
-    #figure(
-      image("icons/chip.jpg", width: 60%)
+    #grid(columns: (2cm,auto,2cm),
+      [], image("icons/chip.jpg"), []
     ) <my_fig_label>
     #v(0.5em)
   ],
@@ -223,42 +224,42 @@
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Center]]
-    #figure(image("icons/center.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/center.png"), [])
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Donut]]
-    #figure(image("icons/donut.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/donut.png"), []) 
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Edge-Loc]]
-    #figure(image("icons/edge-loc.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/edge-loc.png"), []) 
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Edge-Ring]]
-    #figure(image("icons/edge-ring.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/edge-ring.png"), []) 
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Loc]]
-    #figure(image("icons/local.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/local.png"), []) 
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Random]]
-    #figure(image("icons/zufall.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/zufall.png"), []) 
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Scratch]]
-    #figure(image("icons/scratch.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/scratch.png"), []) 
   ],
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Near-full]]
-    #figure(image("icons/fast.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/fast.png"), []) 
   ],
 )
 
@@ -277,22 +278,19 @@
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Center]]
-    #figure(image("icons/center.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/center.png"), [])
   ],
-
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Donut]]
-    #figure(image("icons/donut.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/donut.png"), []) 
   ],
-
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Edge-Loc]]
-    #figure(image("icons/edge-loc.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/edge-loc.png"), []) 
   ],
-
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Edge-Ring]]
-    #figure(image("icons/edge-ring.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/edge-ring.png"), []) 
   ],
 
   card[
@@ -331,22 +329,19 @@
 
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Loc]]
-    #figure(image("icons/local.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/local.png"), []) 
   ],
-
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Random]]
-    #figure(image("icons/zufall.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/zufall.png"), []) 
   ],
-
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Scratch]]
-    #figure(image("icons/scratch.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/scratch.png"), []) 
   ],
-
   card[
     #align(center)[#text(fill: accent2, weight: "bold")[Near-full]]
-    #figure(image("icons/fast.png", width: 60%)) <my_fig_label>
+    #grid(columns: (1.1cm,auto,1.1cm), [], image("icons/fast.png"), []) 
   ],
 
   card[
@@ -426,7 +421,7 @@
 // ╔══════════════════════════════════════════════════════════╗
 // ║  SLIDE 7 — System Architecture I                        ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[System Architecture I]
+#slide-title[System Architecture I: Two-Stage Classification]
 
 #grid(
   columns: (1fr, 1fr),
@@ -435,7 +430,7 @@
     #card[
       #text(fill: accent, weight: "bold")[Stage 1 — Segmentation Model]
       #text(size: 12pt, fill: muted)[(U-Net-inspired)]
-      #figure(image("plots/Unet.png", width: 75%)) <my_fig_label>
+      #grid(columns: (1.5cm,auto,1.5cm), [], image("plots/Unet.png"), []) 
       #item[Encoder: 4 conv blocks at filter depths *32, 64, 128, 256* + MaxPooling]
       #item[Acts as *spatial analyst*: translates raw wafer map into 8 spatial overlay maps]
     ]
@@ -444,7 +439,7 @@
     #card[
       #text(fill: accent, weight: "bold")[Stage 2 — Classification Model]
       #text(size: 12pt, fill: muted)[(CNN)]
-      #figure(image("icons/cnn.png", width: 70%)) <my_fig_label>
+      #grid(columns: (1.9cm,auto,1.9cm), [], image("icons/cnn.png"), []) 
       #item[Input: segmentation output; 4 conv blocks each]
       #item[SpatialAttention: avg + max pool across channels → 7×7 conv → soft mask]
       #item[GlobalAveragePooling → 2 × Dense(512) + BatchNorm + Dropout]
@@ -503,55 +498,12 @@
 // ╔══════════════════════════════════════════════════════════╗
 // ║  SLIDE 9 — Usage Workflow                               ║
 // ╚══════════════════════════════════════════════════════════╝
-#slide-title[Usage Workflow: 4-Step Pipeline]
+#slide-title[Usage Workflow]
 
-#align(center)[
-  #let step(n, title, detail) = rect(
-    width: 88%,
-    inset: (x: 14pt, y: 7pt),
-    radius: 4pt,
-    fill: surface,
-    stroke: (left: 3pt + accent),
-  )[
-    #grid(
-      columns: (28pt, 1fr),
-      column-gutter: 8pt,
-      align(center)[#badge[#n]],
-      [
-        #text(weight: "bold", fill: accent)[#title]
-        #h(6pt)
-        #text(size: 14pt, fill: muted)[#detail]
-      ],
-    )
-  ]
-
-  #let arrow = align(center)[#text(size: 16pt, fill: muted)[↓]]
-
-  #step("1", "Input", "Upload PNG/JPG/JPEG wafer map OR draw a freehand pattern on interactive canvas")
-  #arrow
-  #step("2", "Preprocess", "Convert to grayscale → normalise pixel values to {0, 1, 2} by rounding pixel/127.5 → resize to 64×64 with padding to preserve aspect ratio")
-  #arrow
-  #step("3", "Inference", "Image → Segmentation model → 8 spatial activation maps at 96×96 → Classification model → 8 sigmoid confidence scores")
-  #arrow
-  #rect(
-    width: 88%,
-    inset: (x: 14pt, y: 7pt),
-    radius: 4pt,
-    fill: accent.lighten(85%),
-    stroke: (left: 3pt + good),
-  )[
-    #grid(
-      columns: (28pt, 1fr),
-      column-gutter: 8pt,
-      align(center)[#badge("4", color: good)],
-      [
-        #text(weight: "bold", fill: good)[Display Results]
-        #h(6pt)
-        #text(size: 14pt, fill: muted)[Confidence cards in 3×3 grid · Bars cyan/blue above 70%, grey below 30%, gradient in between · Engineer inspects per-class activation maps · Engineer decides what to do]
-      ],
-    )
-  ]
-]
+#grid(columns: (1fr, auto),
+  [],
+  image("presentation/system_pipeline.png", width: 85%),
+)
 
 #slide-num(9)
 #pagebreak()
