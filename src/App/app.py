@@ -246,7 +246,7 @@ with left_col:
         canvas = st_canvas(
             display_toolbar=True,
             fill_color="rgba(255,255,255,0)",
-            stroke_width=12,
+            stroke_width=20,
             stroke_color="#FFFFFF",
             background_color="#000000",
             width=500,
